@@ -1,3 +1,4 @@
+import EditorialBanner from '@/components/cms/EditorialBanner';
 import RecipeHome from '@/components/home/RecipeHome';
 import { getLatestArticles, getMostRead } from '@/lib/cms-client';
 
@@ -11,5 +12,10 @@ export default async function HomeLayout() {
     getMostRead(5),
   ]);
 
-  return <RecipeHome articles={articles} mostRead={mostRead} />;
+  return (
+    <>
+      <EditorialBanner />
+      <RecipeHome articles={articles} mostRead={mostRead} />
+    </>
+  );
 }

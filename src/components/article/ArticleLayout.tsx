@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import ArticleSentiment from '@/components/article/ArticleSentiment';
 import ArticleCard from '@/components/cards/ArticleCard';
 import ArticleKeyPoints from '@/components/article/ArticleKeyPoints';
 import type { Article } from '@/lib/cms-client';
@@ -361,19 +362,34 @@ function OpinionColumn({ article, related }: ArticleLayoutProps) {
 }
 
 export default function ArticleLayout({ article, related }: ArticleLayoutProps) {
+  let content: React.ReactNode;
   switch (siteConfig.layouts.article) {
     case 'longform-focused':
-      return <LongformFocused article={article} related={related} />;
+      content = <LongformFocused article={article} related={related} />;
+      break;
     case 'split-rail-story':
-      return <SplitRailStory article={article} related={related} />;
+      content = <SplitRailStory article={article} related={related} />;
+      break;
     case 'interview-focus':
-      return <InterviewFocus article={article} related={related} />;
+      content = <InterviewFocus article={article} related={related} />;
+      break;
     case 'gallery-lead':
-      return <GalleryLead article={article} related={related} />;
+      content = <GalleryLead article={article} related={related} />;
+      break;
     case 'opinion-column':
-      return <OpinionColumn article={article} related={related} />;
+      content = <OpinionColumn article={article} related={related} />;
+      break;
     case 'media-rich-story':
     default:
-      return <MediaRichStory article={article} related={related} />;
+      content = <MediaRichStory article={article} related={related} />;
   }
+
+  return (
+    <>
+      {content}
+      <div className="mx-auto max-w-4xl px-4 pb-12">
+        <ArticleSentiment slug={article.slug} articleId={article.id} />
+      </div>
+    </>
+  );
 }

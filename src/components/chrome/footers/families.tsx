@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import FooterNewsletterForm from '@/components/chrome/footers/FooterNewsletterForm';
 import { siteConfig } from '@/lib/site-config';
 import { resolveChrome } from '@/lib/chrome';
 import { cn } from '@/lib/utils';
@@ -117,9 +118,9 @@ export function EditorialStatementFooter() {
             Arquivo
           </Link>
           {cfg.showNewsletter ? (
-            <Link href="/contact" className="hover:text-primary">
-              Newsletter
-            </Link>
+            <div className="mx-auto w-full max-w-sm">
+              <FooterNewsletterForm />
+            </div>
           ) : null}
         </nav>
         <p className="mt-10 text-xs text-muted">
@@ -144,12 +145,7 @@ export function DenseDirectoryFooter() {
               {siteConfig.description}
             </p>
             {cfg.showNewsletter ? (
-              <Link
-                href="/contact"
-                className="mt-4 inline-flex text-xs font-bold uppercase text-primary hover:underline"
-              >
-                Assine a newsletter
-              </Link>
+              <FooterNewsletterForm />
             ) : null}
           </div>
           {siteConfig.navCategories.slice(0, 3).map((cat) => (
@@ -211,12 +207,7 @@ export function RegionalServiceFooter() {
               Serviço local · utilidade pública · cobertura da sua região
             </p>
             {cfg.showNewsletter ? (
-              <Link
-                href="/contact"
-                className="mt-4 inline-flex min-h-11 items-center text-xs font-bold uppercase text-primary"
-              >
-                Alertas da região
-              </Link>
+              <FooterNewsletterForm />
             ) : null}
           </div>
           <div>
