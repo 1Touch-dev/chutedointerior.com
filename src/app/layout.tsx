@@ -3,6 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import ChromeHost from '@/components/chrome/ChromeHost';
 import Footer from '@/components/chrome/Footer';
+import PartnerBanners from '@/components/cms/PartnerBanners';
 import { getAlerts, getBreakingHeadlines } from '@/lib/cms-client';
 import { siteConfig } from '@/lib/site-config';
 import { hasCapability } from '@/lib/capabilities';
@@ -68,10 +69,13 @@ export default async function RootLayout({
           Pular para o conteúdo
         </a>
         <ChromeHost headlines={headlines} alerts={alerts} />
+        <PartnerBanners position="header" />
         <main id="conteudo-principal" className="flex-1 min-w-0">
           {children}
         </main>
+        <PartnerBanners position="footer" />
         <Footer />
+        <PartnerBanners position="popup" />
       </body>
     </html>
   );

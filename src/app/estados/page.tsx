@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import SectionArticles from '@/components/cms/SectionArticles';
 import { getBrazilianStates } from '@/lib/cms-client';
 import { hasCapability } from '@/lib/capabilities';
 import { siteConfig } from '@/lib/site-config';
@@ -21,8 +22,11 @@ export default async function EstadosPage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Brasil</p>
       <h1 className="mt-2 font-display text-3xl text-secondary md:text-4xl">Estados</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted">
-        Diretório nacional (27 UFs). Cada página de estado lista matérias remapeadas para demo.
+      <div className="mt-8">
+        <SectionArticles endpoint="Estados" />
+      </div>
+      <p className="mt-10 max-w-2xl text-sm text-muted">
+        Diretório das 27 UFs.
       </p>
       <div className="mt-10 space-y-10">
         {Object.entries(byRegion).map(([region, list]) => (

@@ -4,6 +4,7 @@ import MatchCard from '@/components/football/MatchCard';
 import StandingsTable from '@/components/football/StandingsTable';
 import ScorersList from '@/components/football/ScorersList';
 import CompetitionTabs from '@/components/football/CompetitionTabs';
+import BrasileiraoBoard from '@/components/football/BrasileiraoBoard';
 import { hasCapability } from '@/lib/capabilities';
 import { getCompetitionBySlug } from '@/lib/competitions';
 import {
@@ -34,6 +35,20 @@ export default async function LigaPage({ params }: PageProps) {
   const { slug } = await params;
   const competition = getCompetitionBySlug(slug);
   if (!competition) notFound();
+
+  if (competition.slug === 'brasileirao') {
+    return (
+      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
+        <header className="space-y-2">
+          <h1 className="font-display text-4xl uppercase tracking-wide text-secondary md:text-5xl">
+            {competition.name}
+          </h1>
+          <p className="text-sm text-muted">Temporada {competition.season}. A tabela de pontos fica nesta página.</p>
+        </header>
+        <BrasileiraoBoard />
+      </div>
+    );
+  }
 
   const [standings, scorers, upcoming] = await Promise.all([
     fetchStandingsFor(competition),

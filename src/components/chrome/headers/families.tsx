@@ -213,7 +213,7 @@ export function EditorialCenteredHeader() {
             {siteConfig.navCategories.slice(0, 7).map((cat) => (
               <Link
                 key={cat.slug}
-                href={`/categoria/${cat.slug}`}
+                href={navHrefForSlug(cat.slug)}
                 className="min-h-11 inline-flex items-center text-secondary hover:text-primary"
               >
                 {cat.name}
@@ -323,7 +323,7 @@ function TrendingCarouselStrip() {
         {topics.map((cat, i) => (
           <Link
             key={cat.slug}
-            href={`/categoria/${cat.slug}`}
+            href={navHrefForSlug(cat.slug)}
             className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full bg-black/[0.04] px-3 text-[11px] font-semibold text-secondary hover:bg-primary/10 hover:text-primary"
           >
             <span className="text-[10px] text-muted">{i + 1}</span>

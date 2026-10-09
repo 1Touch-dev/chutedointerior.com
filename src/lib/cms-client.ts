@@ -1,7 +1,4 @@
 import {
-  articles as rawArticles,
-  categories as fallbackCategories,
-  breakingHeadlines,
   alerts as rawAlerts,
   liveStories as rawLiveStories,
   type Article,
@@ -11,9 +8,8 @@ import {
   type LiveStory,
 } from '@/data/dummy';
 import { siteConfig } from '@/lib/site-config';
-import { isPlaceholder } from '@/lib/placeholder-registry';
-import { getResolvedIntegrations, loadPublicSiteConfig } from '@/lib/public-config';
 import { BRAZILIAN_STATES, getStateByUf, type BrazilianState } from '@/data/brazilian-states';
+import { cmsSectionByEndpoint, cmsSectionBySlug, cmsSections } from '@/lib/sections';
 
 export type { Article, Category, BreakingHeadline, AlertItem, LiveStory, BrazilianState };
 
@@ -29,37 +25,6 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-function cmsUrl(pathOrAbsolute?: string): string | null {
-  if (!pathOrAbsolute || isPlaceholder(pathOrAbsolute)) return null;
-  if (/^https?:\/\//i.test(pathOrAbsolute)) return pathOrAbsolute;
-  if (!CMS_BASE) return null;
-  return `${CMS_BASE}${pathOrAbsolute.startsWith('/') ? pathOrAbsolute : `/${pathOrAbsolute}`}`;
-}
-
-function articlesListUrl(extra: Record<string, string | number | undefined> = {}): string {
-  const fromCatalog = cmsUrl(getResolvedIntegrations().ARTICLES_LIST);
-  if (fromCatalog && !extra.category && !extra.search) {
-    return fromCatalog;
-  }
-  const params = new URLSearchParams({
-    targetWebsite: WEBSITE_KEY,
-    page: String(extra.page ?? 1),
-    limit: String(extra.limit ?? 40),
-  });
-  if (extra.category) params.set('category', String(extra.category));
-  if (extra.search) params.set('search', String(extra.search));
-  if (extra.slug) params.set('slug', String(extra.slug));
-  return `${CMS_BASE}/ai-articles?${params.toString()}`;
-}
-
-function articleBySlugUrl(slug: string): string {
-  const tmpl = cmsUrl(getResolvedIntegrations().ARTICLE_BY_SLUG);
-  if (tmpl) {
-    return tmpl.replace('{slug}', encodeURIComponent(slug));
-  }
-  return `${CMS_BASE}/ai-articles/slug/${encodeURIComponent(slug)}`;
-}
-
 function isPublic(doc: Record<string, unknown>): boolean {
   if (doc.publishState === 'needs_review') return false;
   const scheduled = doc.scheduledTime;
@@ -70,32 +35,57 @@ function isPublic(doc: Record<string, unknown>): boolean {
   return true;
 }
 
+function assignmentNames(raw: Record<string, unknown>): string[] {
+  const names: string[] = [];
+  const assigned = raw.endpointAssignments;
+  if (Array.isArray(assigned)) {
+    assigned.forEach((item) => {
+      if (!item || typeof item !== 'object') return;
+      const name = String((item as { name?: string }).name || '').trim();
+      if (name) names.push(name);
+    });
+  } else if (assigned && typeof assigned === 'object') {
+    const name = String((assigned as { name?: string }).name || '').trim();
+    if (name) names.push(name);
+  }
+  const section = typeof raw.websiteSection === 'string' ? raw.websiteSection.trim() : '';
+  if (section) names.push(section);
+  return names;
+}
+
+function renderBody(value: string): string {
+  const source = value.replace(/\r\n/g, '\n').trim();
+  if (!source) return '';
+  if (/<\/?(p|div|h[1-6]|ul|ol|li|br|blockquote|figure|section)\b/i.test(source)) return source;
+  return source
+    .split(/\n{2,}/)
+    .map((block) => `<p>${block.trim().replace(/\n/g, '<br />')}</p>`)
+    .join('');
+}
+
 function mapCmsArticle(raw: Record<string, unknown>, index = 0): Article {
   const cats = Array.isArray(raw.category)
     ? (raw.category as string[])
     : raw.category
       ? [String(raw.category)]
       : [];
-  const nav = siteConfig.navCategories;
-  const categoryName = cats[0] || nav[index % Math.max(nav.length, 1)]?.name || 'Notícias';
-  const categorySlug =
-    slugify(cats[0] || '') || nav.find((c) => c.name === categoryName)?.slug || slugify(categoryName);
+  const assigned = assignmentNames(raw);
+  const categoryName = assigned[0] || cats[0] || 'Notícias';
+  const known = cmsSectionByEndpoint(categoryName);
+  const categorySlug = known?.slug || slugify(categoryName) || 'noticias';
   const authors = Array.isArray(raw.authorNames) ? (raw.authorNames as string[]) : [];
   const images = Array.isArray(raw.imageUrls) ? (raw.imageUrls as string[]) : [];
-  const seo =
-    raw.seo && typeof raw.seo === 'object' ? (raw.seo as Record<string, unknown>) : {};
+  const seo = raw.seo && typeof raw.seo === 'object' ? (raw.seo as Record<string, unknown>) : {};
   const published =
-    (raw.scheduledTime as string) ||
-    (raw.createdAt as string) ||
-    new Date().toISOString();
+    (raw.createdAt as string) || (raw.scheduledTime as string) || new Date().toISOString();
 
   return {
     id: String(raw._id || raw.id || raw.slug || index),
     slug: String(raw.slug || ''),
     title: String(raw.title || ''),
     excerpt: String(raw.summary || raw.description || seo.meta_description || ''),
-    content: String(raw.content || raw.description || ''),
-    category: categoryName,
+    content: renderBody(String(raw.content || raw.description || '')),
+    category: known?.label || categoryName,
     categorySlug,
     author: authors[0] || 'Redação',
     publishedAt: published,
@@ -112,113 +102,112 @@ function sortByDate(items: Article[]): Article[] {
   );
 }
 
-function editorialCategories(): Category[] {
-  const nav = siteConfig.navCategories;
-  if (nav?.length) {
-    return nav.map((c) => ({
-      id: `nav-${c.slug}`,
-      name: c.name,
-      slug: c.slug,
-      description: `Cobertura de ${c.name} em ${siteConfig.siteName}`,
-    }));
-  }
-  return fallbackCategories;
-}
+type ListPayload = {
+  data?: unknown[];
+  meta?: { total?: number };
+};
 
-function withSiteCategories(items: Article[]): Article[] {
-  const nav = siteConfig.navCategories;
-  if (!nav?.length) return items;
-
-  return items.map((article, index) => {
-    const cat = nav[index % nav.length];
-    return {
-      ...article,
-      category: cat.name,
-      categorySlug: cat.slug,
-    };
-  });
-}
-
-function dummyArticles(): Article[] {
-  return withSiteCategories(rawArticles);
-}
-
-let liveCache: { at: number; items: Article[] } | null = null;
-const LIVE_TTL_MS = 60_000;
-
-async function fetchLiveArticles(): Promise<Article[] | null> {
+async function fetchEndpoint(endpoint: string, limit = 20, page = 1): Promise<Article[] | null> {
   if (!CMS_BASE || !WEBSITE_KEY) return null;
-  if (liveCache && Date.now() - liveCache.at < LIVE_TTL_MS) return liveCache.items;
+  const params = new URLSearchParams({
+    targetWebsite: WEBSITE_KEY,
+    endpoint,
+    limit: String(limit),
+    page: String(page),
+    sort: 'createdAt',
+    order: 'desc',
+  });
 
   try {
-    await loadPublicSiteConfig();
-    const res = await fetch(articlesListUrl({ limit: 40 }), {
+    const res = await fetch(`${CMS_BASE}/ai-articles?${params.toString()}`, {
       headers: { Accept: 'application/json' },
+      next: { revalidate: 60 },
     });
     if (!res.ok) return null;
-    const json = (await res.json()) as { data?: unknown[] } | unknown[];
-    const rows = Array.isArray(json) ? json : Array.isArray(json.data) ? json.data : [];
-    const items = rows
-      .filter((row): row is Record<string, unknown> => !!row && typeof row === 'object')
+    const json = (await res.json()) as ListPayload;
+    const rows = Array.isArray(json.data) ? json.data : [];
+    const records = rows.filter(
+      (row): row is Record<string, unknown> => !!row && typeof row === 'object'
+    );
+    const articles = records
       .filter(isPublic)
       .map((row, i) => mapCmsArticle(row, i))
-      .filter((a) => a.slug && a.title);
+      .filter((article) => article.slug && article.title);
 
-    if (!items.length) return null;
-    liveCache = { at: Date.now(), items };
-    return items;
+    if (endpoint === 'HomePage') return articles;
+
+    const total = json.meta?.total;
+    if (total === 0) return [];
+
+    const matched = articles.filter((article) => {
+      const source = records.find((row) => String(row.slug || '') === article.slug);
+      return source ? assignmentNames(source).includes(endpoint) : false;
+    });
+    if (matched.length > 0) return matched;
+    if (typeof total === 'number' && total > 0) return articles;
+    return [];
   } catch {
     return null;
   }
 }
 
-async function resolveArticles(): Promise<Article[]> {
-  const live = await fetchLiveArticles();
-  if (live?.length) return live;
-  return dummyArticles();
+function listed(items: Article[] | null): Article[] {
+  return items ?? [];
+}
+
+export async function getArticlesByEndpoint(endpoint: string, limit = 20, page = 1): Promise<Article[]> {
+  return listed(await fetchEndpoint(endpoint, limit, page));
 }
 
 export async function getLatestArticles(limit = 10): Promise<Article[]> {
-  return sortByDate(await resolveArticles()).slice(0, limit);
+  return sortByDate(listed(await fetchEndpoint('HomePage', Math.max(limit, 12)))).slice(0, limit);
+}
+
+function unwrapArticle(json: unknown): Record<string, unknown> | null {
+  if (!json || typeof json !== 'object') return null;
+  const obj = json as Record<string, unknown>;
+  if (typeof obj.slug === 'string') return obj;
+  if (obj.data && typeof obj.data === 'object' && !Array.isArray(obj.data)) {
+    const data = obj.data as Record<string, unknown>;
+    if (typeof data.slug === 'string') return data;
+  }
+  return null;
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
-  if (CMS_BASE) {
-    try {
-      await loadPublicSiteConfig();
-      const res = await fetch(articleBySlugUrl(slug), {
-        headers: { Accept: 'application/json' },
-      });
-      if (res.ok) {
-        const raw = (await res.json()) as Record<string, unknown>;
-        if (raw && isPublic(raw) && raw.slug) return mapCmsArticle(raw);
-      }
-    } catch {
-      /* dummy fallback */
-    }
+  if (!CMS_BASE || !WEBSITE_KEY) return null;
+  try {
+    const params = new URLSearchParams({ targetWebsite: WEBSITE_KEY });
+    const res = await fetch(
+      `${CMS_BASE}/ai-articles/slug/${encodeURIComponent(slug)}?${params.toString()}`,
+      { headers: { Accept: 'application/json' }, cache: 'no-store' }
+    );
+    if (!res.ok) return null;
+    const raw = unwrapArticle(await res.json());
+    if (!raw || !isPublic(raw) || !raw.slug) return null;
+    return mapCmsArticle(raw);
+  } catch {
+    return null;
   }
-  const all = await resolveArticles();
-  return all.find((article) => article.slug === slug) ?? null;
 }
 
 export async function getByCategory(categorySlug: string, limit = 10): Promise<Article[]> {
-  const all = await resolveArticles();
-  return sortByDate(all.filter((article) => article.categorySlug === categorySlug)).slice(
-    0,
-    limit
-  );
+  const section = cmsSectionBySlug(categorySlug);
+  if (section) {
+    return sortByDate(listed(await fetchEndpoint(section.endpoint, limit))).slice(0, limit);
+  }
+  const home = listed(await fetchEndpoint('HomePage', 40));
+  return sortByDate(home.filter((article) => article.categorySlug === categorySlug)).slice(0, limit);
 }
 
 export async function getMostRead(limit = 5): Promise<Article[]> {
-  const all = await resolveArticles();
-  return [...all]
-    .sort((a, b) => (b.readCount ?? 0) - (a.readCount ?? 0))
-    .slice(0, limit);
+  const all = listed(await fetchEndpoint('HomePage', 40));
+  return [...all].sort((a, b) => (b.readCount ?? 0) - (a.readCount ?? 0)).slice(0, limit);
 }
 
 export async function getFeaturedArticles(limit = 3): Promise<Article[]> {
-  const all = await resolveArticles();
-  const featured = all.filter((a) => a.featured);
+  const all = listed(await fetchEndpoint('HomePage', limit));
+  const featured = all.filter((article) => article.featured);
   if (featured.length >= limit) return sortByDate(featured).slice(0, limit);
   return sortByDate(all).slice(0, limit);
 }
@@ -226,47 +215,36 @@ export async function getFeaturedArticles(limit = 3): Promise<Article[]> {
 export async function search(query: string, limit = 20): Promise<Article[]> {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return [];
-
-  if (CMS_BASE) {
-    const live = await fetchLiveArticles();
-    if (live) {
-      return sortByDate(
-        live.filter(
-          (article) =>
-            article.title.toLowerCase().includes(normalized) ||
-            article.excerpt.toLowerCase().includes(normalized) ||
-            article.category.toLowerCase().includes(normalized)
-        )
-      ).slice(0, limit);
-    }
-  }
-
+  const live = await fetchEndpoint('HomePage', 80);
+  if (!live) return [];
   return sortByDate(
-    dummyArticles().filter(
+    live.filter(
       (article) =>
         article.title.toLowerCase().includes(normalized) ||
         article.excerpt.toLowerCase().includes(normalized) ||
-        article.category.toLowerCase().includes(normalized) ||
-        article.author.toLowerCase().includes(normalized)
+        article.category.toLowerCase().includes(normalized)
     )
   ).slice(0, limit);
 }
 
 export async function getCategories(): Promise<Category[]> {
-  return editorialCategories();
+  return cmsSections.map((section) => ({
+    id: section.slug,
+    name: section.label,
+    slug: section.slug,
+    description: `Cobertura de ${section.label} em ${siteConfig.siteName}`,
+  }));
 }
 
 export async function getBreakingHeadlines(): Promise<BreakingHeadline[]> {
-  const live = await fetchLiveArticles();
-  if (live?.length) {
-    return live.slice(0, 8).map((a, i) => ({
-      id: `brk-${a.id}`,
-      text: a.title,
-      slug: a.slug,
-      urgent: i === 0,
-    }));
-  }
-  return breakingHeadlines;
+  const live = await fetchEndpoint('HomePage', 8);
+  if (!live?.length) return [];
+  return live.slice(0, 8).map((article, index) => ({
+    id: `brk-${article.id}`,
+    text: article.title,
+    slug: article.slug,
+    urgent: index === 0,
+  }));
 }
 
 export async function getAlerts(limit = 20): Promise<AlertItem[]> {
@@ -280,7 +258,7 @@ export async function getLiveStories(): Promise<LiveStory[]> {
 }
 
 export async function getLiveStoryBySlug(slug: string): Promise<LiveStory | null> {
-  return rawLiveStories.find((s) => s.slug === slug) ?? null;
+  return rawLiveStories.find((story) => story.slug === slug) ?? null;
 }
 
 export async function getBrazilianStates(): Promise<BrazilianState[]> {

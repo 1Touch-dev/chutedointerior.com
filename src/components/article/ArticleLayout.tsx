@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import ArticleSentiment from '@/components/article/ArticleSentiment';
+import PartnerBanners from '@/components/cms/PartnerBanners';
+import { navHrefForSlug } from '@/lib/competitions';
 import ArticleCard from '@/components/cards/ArticleCard';
 import ArticleKeyPoints from '@/components/article/ArticleKeyPoints';
 import type { Article } from '@/lib/cms-client';
@@ -43,7 +45,7 @@ function Breadcrumb({ article }: { article: Article }) {
         Início
       </Link>
       <span className="mx-2">/</span>
-      <Link href={`/categoria/${article.categorySlug}`} className="hover:text-primary">
+      <Link href={navHrefForSlug(article.categorySlug)} className="hover:text-primary">
         {article.category}
       </Link>
     </nav>
@@ -387,6 +389,7 @@ export default function ArticleLayout({ article, related }: ArticleLayoutProps) 
   return (
     <>
       {content}
+      <PartnerBanners position="content" />
       <div className="mx-auto max-w-4xl px-4 pb-12">
         <ArticleSentiment slug={article.slug} articleId={article.id} />
       </div>

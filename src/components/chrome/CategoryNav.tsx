@@ -4,12 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { resolveChrome } from '@/lib/chrome';
 import { cn } from '@/lib/utils';
-import {
-  articleNavCategories,
-  getCompetitions,
-  isSportsSite,
-  navHrefForSlug,
-} from '@/lib/competitions';
+import { cmsSections } from '@/lib/sections';
 
 /** Category rail - contrast follows chrome.surface */
 export default function CategoryNav() {
@@ -44,50 +39,15 @@ export default function CategoryNav() {
         <Link href="/" className={linkClass(pathname === '/')}>
           Início
         </Link>
-        <Link
-          href="/news"
-          className={linkClass(
-            pathname === '/news' || pathname.startsWith('/artigo/')
-          )}
-        >
-          Notícias
-        </Link>
-        {isSportsSite() ? (
-          <>
-            <Link
-              href="/futebol"
-              className={linkClass(
-                pathname === '/futebol' || pathname.startsWith('/liga/')
-              )}
-            >
-              Partidas
-            </Link>
-            {getCompetitions().map((competition) => {
-              const href = `/liga/${competition.slug}`;
-              return (
-                <Link
-                  key={competition.slug}
-                  href={href}
-                  className={linkClass(pathname === href)}
-                >
-                  {competition.name}
-                </Link>
-              );
-            })}
-          </>
-        ) : null}
-        {articleNavCategories().map((cat) => {
-          const href = navHrefForSlug(cat.slug);
-          return (
-            <Link
-              key={cat.slug}
-              href={href}
-              className={linkClass(pathname === href)}
-            >
-              {cat.name}
-            </Link>
-          );
-        })}
+        {cmsSections.map((section) => (
+          <Link
+            key={section.slug}
+            href={section.href}
+            className={linkClass(pathname === section.href)}
+          >
+            {section.label}
+          </Link>
+        ))}
         <Link
           href="/categories"
           className={cn(linkClass(pathname === '/categories'), 'ml-auto')}

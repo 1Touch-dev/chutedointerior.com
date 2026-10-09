@@ -114,8 +114,8 @@ export function EditorialStatementFooter() {
           <Link href="/contact" className="hover:text-primary">
             Redação
           </Link>
-          <Link href="/news" className="hover:text-primary">
-            Arquivo
+          <Link href="/ultimas" className="hover:text-primary">
+            Notícias
           </Link>
           {cfg.showNewsletter ? (
             <div className="mx-auto w-full max-w-sm">

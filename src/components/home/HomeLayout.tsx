@@ -1,4 +1,5 @@
 import EditorialBanner from '@/components/cms/EditorialBanner';
+import { EMPTY_NOTES } from '@/components/cms/SectionArticles';
 import RecipeHome from '@/components/home/RecipeHome';
 import { getLatestArticles, getMostRead } from '@/lib/cms-client';
 
@@ -15,7 +16,11 @@ export default async function HomeLayout() {
   return (
     <>
       <EditorialBanner />
-      <RecipeHome articles={articles} mostRead={mostRead} />
+      {articles.length === 0 ? (
+        <p className="mx-auto max-w-7xl px-4 py-10 text-sm text-muted">{EMPTY_NOTES}</p>
+      ) : (
+        <RecipeHome articles={articles} mostRead={mostRead} />
+      )}
     </>
   );
 }

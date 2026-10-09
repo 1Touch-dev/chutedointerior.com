@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function NewsPage() {
+export default function NoticiasAliasPage() {
   redirect('/ultimas');
 }

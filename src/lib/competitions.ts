@@ -5,6 +5,7 @@
 
 import { siteConfig } from '@/lib/site-config';
 import { hasCapability } from '@/lib/capabilities';
+import { cmsSectionBySlug, cmsSections } from '@/lib/sections';
 
 export type CompetitionKind = 'league' | 'cup' | 'national';
 
@@ -85,26 +86,19 @@ export function competitionLeagueIds(): number[] {
 
 /** Map news-nav slugs onto sports routes when live-scores is on. */
 export function navHrefForSlug(slug: string): string {
+  const section = cmsSectionBySlug(slug);
+  if (section) return section.href;
   if (!isSportsSite()) return `/categoria/${slug}`;
   if (slug === 'futebol' || slug === 'esportes' || slug === 'partidas') {
     return '/futebol';
   }
   if (slug === 'ao-vivo') return '/ao-vivo';
-  if (slug === 'tabelas') return '/liga/brasileirao';
+  if (slug === 'tabelas') return '/futebol';
   const competition = getCompetitionBySlug(slug);
   if (competition) return `/liga/${competition.slug}`;
   return `/categoria/${slug}`;
 }
 
 export function articleNavCategories() {
-  if (!isSportsSite()) return siteConfig.navCategories;
-  const reserved = new Set([
-    'futebol',
-    'esportes',
-    'partidas',
-    'ao-vivo',
-    'tabelas',
-    ...getCompetitions().map((c) => c.slug),
-  ]);
-  return siteConfig.navCategories.filter((c) => !reserved.has(c.slug));
+  return cmsSections.map((section) => ({ name: section.label, slug: section.slug }));
 }

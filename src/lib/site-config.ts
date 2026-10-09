@@ -162,8 +162,8 @@ export const siteConfig: SiteConfig = {
   description: "O futebol que nasce longe dos holofotes",
   locale: {"language":"pt","dialect":"pt-BR","timezone":"America/Sao_Paulo"},
   cms: {
-    baseUrl: process.env.NEXT_PUBLIC_CMS_URL || 'https://api.football360brazil.com/api',
-    websiteKey: "chutedointerior",
+    baseUrl: process.env.NEXT_PUBLIC_CMS_URL || 'https://api.chutedointerior.com/api',
+    websiteKey: process.env.NEXT_PUBLIC_CMS_WEBSITE || 'chutedointerior.com',
     collections: ["feed_brazil","aiarticles"],
   },
   seo: {
@@ -207,18 +207,23 @@ export const siteConfig: SiteConfig = {
     }
   },
   navCategories: [
-    {
-      "name": "Série C clubs",
-      "slug": "serie-c-clubs"
-    },
-    {
-      "name": "regional stories",
-      "slug": "regional-stories"
-    },
-    {
-      "name": "grassroots journeys",
-      "slug": "grassroots-journeys"
-    }
+    { name: "Série C", slug: "serie-c" },
+    { name: "Histórias regionais", slug: "historias-regionais" },
+    { name: "Base e amador", slug: "base-e-amador" },
+    { name: "Série B", slug: "serie-b" },
+    { name: "Brasileirão", slug: "brasileirao" },
+    { name: "Copa do Brasil", slug: "copa-do-brasil" },
+    { name: "Libertadores", slug: "libertadores" },
+    { name: "Seleção", slug: "selecao" },
+    { name: "Estados", slug: "estados" },
+    { name: "Calendário", slug: "calendario" },
+    { name: "Tabela de posições", slug: "tabela-de-posicoes" },
+    { name: "Transferências", slug: "transferencias" },
+    { name: "Partidas", slug: "partidas" },
+    { name: "Clubes", slug: "clubes" },
+    { name: "Jogadores", slug: "jogadores" },
+    { name: "Notícias", slug: "noticias" },
+    { name: "Outras", slug: "outras" }
   ],
   competitions: [
     {
@@ -383,8 +388,8 @@ export const siteConfig: SiteConfig = {
     "FOOTBALL_TEAMS": "/football/teams?league=71&season=2026",
     "FOOTBALL_LEAGUES": "/football/leagues",
     "MARKETS": "TODO_MARKETS_API",
-    "ARTICLES_LIST": "/ai-articles?targetWebsite=chutedointerior&page=1&limit=20",
-    "ARTICLE_BY_SLUG": "/ai-articles/slug/{slug}",
-    "BANNERS": "/banners/public/chutedointerior"
+    "ARTICLES_LIST": "/ai-articles?targetWebsite=chutedointerior.com&endpoint=HomePage&limit=20&page=1&sort=createdAt&order=desc",
+    "ARTICLE_BY_SLUG": "/ai-articles/slug/{slug}?targetWebsite=chutedointerior.com",
+    "BANNERS": "/banners/public/chutedointerior.com"
   },
 };
