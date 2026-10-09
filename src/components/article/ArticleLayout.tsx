@@ -15,6 +15,13 @@ interface ArticleLayoutProps {
   related: Article[];
 }
 
+const articleBodyClass =
+  '[&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-tight [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-bold [&_h4]:mt-5 [&_h4]:text-lg [&_h4]:font-semibold [&_p]:mt-4 [&_a]:underline [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1 [&_strong]:font-semibold';
+
+function ArticleHtml({ html, className }: { html: string; className: string }) {
+  return <div className={`${className} ${articleBodyClass}`} dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
 function KeyPointsBlock({
   article,
   inverted = false,
@@ -148,9 +155,9 @@ function MediaRichStory({ article, related }: ArticleLayoutProps) {
           <Byline article={article} />
         </div>
         <KeyPointsBlock article={article} inverted />
-        <div
+        <ArticleHtml
           className="prose prose-invert mt-8 max-w-none font-body text-base leading-[1.7] prose-headings:font-display prose-headings:uppercase prose-a:text-accent"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          html={article.content}
         />
         <div className="[&_h2]:text-white [&_h3]:text-white [&_.text-muted]:text-white/50 [&_.text-foreground]:text-white [&_.text-primary]:text-accent [&_.border-black\\/10]:border-white/10">
           <RelatedBlock related={related} variant="horizontal" />
@@ -202,9 +209,9 @@ function LongformFocused({ article, related }: ArticleLayoutProps) {
           </figure>
         )}
 
-        <div
+        <ArticleHtml
           className="prose prose-lg prose-neutral mt-12 max-w-none font-article leading-[1.85] prose-headings:font-display prose-headings:tracking-[-0.01em] prose-p:text-secondary/90 prose-a:text-primary"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          html={article.content}
         />
         <RelatedBlock related={related} variant="compact" />
       </div>
@@ -243,9 +250,9 @@ function SplitRailStory({ article, related }: ArticleLayoutProps) {
             </div>
           )}
 
-          <div
+          <ArticleHtml
             className="prose prose-neutral mt-8 max-w-none font-article leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            html={article.content}
           />
         </article>
 
@@ -285,9 +292,9 @@ function InterviewFocus({ article, related }: ArticleLayoutProps) {
             “{article.excerpt}”
           </blockquote>
           <Byline article={article} />
-          <div
+          <ArticleHtml
             className="prose prose-neutral mt-8 max-w-none font-article"
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            html={article.content}
           />
         </div>
         <aside className="space-y-4">
@@ -333,10 +340,7 @@ function GalleryLead({ article, related }: ArticleLayoutProps) {
         </div>
       </div>
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <div
-          className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: article.content }}
-        />
+        <ArticleHtml className="prose prose-lg max-w-none" html={article.content} />
         <RelatedBlock related={related} variant="compact" />
       </div>
     </article>
@@ -354,10 +358,7 @@ function OpinionColumn({ article, related }: ArticleLayoutProps) {
       {article.excerpt && (
         <p className="mt-6 text-xl leading-relaxed text-muted-text">{article.excerpt}</p>
       )}
-      <div
-        className="prose prose-lg mt-10 max-w-none font-body"
-        dangerouslySetInnerHTML={{ __html: article.content }}
-      />
+      <ArticleHtml className="prose prose-lg mt-10 max-w-none font-body" html={article.content} />
       <RelatedBlock related={related} variant="horizontal" />
     </article>
   );

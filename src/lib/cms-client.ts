@@ -53,14 +53,100 @@ function assignmentNames(raw: Record<string, unknown>): string[] {
   return names;
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderInlineMarkdown(value: string): string {
+  const withLinks = escapeHtml(value).replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)/g,
+    (_match, label: string, href: string) => `<a href="${href}">${label}</a>`
+  );
+
+  return withLinks
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])_([^_\n]+?)_(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>')
+    .replace(/(^|[\s(])\*([^*\n]+?)\*(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
+}
+
 function renderBody(value: string): string {
   const source = value.replace(/\r\n/g, '\n').trim();
   if (!source) return '';
   if (/<\/?(p|div|h[1-6]|ul|ol|li|br|blockquote|figure|section)\b/i.test(source)) return source;
-  return source
-    .split(/\n{2,}/)
-    .map((block) => `<p>${block.trim().replace(/\n/g, '<br />')}</p>`)
-    .join('');
+
+  const html: string[] = [];
+  let paragraph: string[] = [];
+  let listType: 'ol' | 'ul' | null = null;
+  let listItems: string[] = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length === 0) return;
+    html.push(`<p>${renderInlineMarkdown(paragraph.join(' '))}</p>`);
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (!listType || listItems.length === 0) {
+      listType = null;
+      listItems = [];
+      return;
+    }
+    const items = listItems.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join('');
+    html.push(`<${listType}>${items}</${listType}>`);
+    listType = null;
+    listItems = [];
+  };
+
+  source.split('\n').forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const heading = line.match(/^(#{1,4})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      flushList();
+      const depth = heading[1].length;
+      const tag = depth <= 2 ? 'h2' : depth === 3 ? 'h3' : 'h4';
+      const question = heading[2].match(/^(.+\?)\s+(.+)$/);
+      if (question) {
+        html.push(`<${tag}>${renderInlineMarkdown(question[1])}</${tag}>`);
+        paragraph.push(question[2]);
+        return;
+      }
+      html.push(`<${tag}>${renderInlineMarkdown(heading[2])}</${tag}>`);
+      return;
+    }
+
+    const ordered = line.match(/^\d+\.\s+(.+)$/);
+    if (ordered) {
+      flushParagraph();
+      if (listType === 'ul') flushList();
+      listType = 'ol';
+      listItems.push(ordered[1]);
+      return;
+    }
+
+    const bullet = line.match(/^[-*]\s+(.+)$/);
+    if (bullet) {
+      flushParagraph();
+      if (listType === 'ol') flushList();
+      listType = 'ul';
+      listItems.push(bullet[1]);
+      return;
+    }
+
+    if (listType) flushList();
+    paragraph.push(line);
+  });
+
+  flushParagraph();
+  flushList();
+  return html.join('\n');
 }
 
 function mapCmsArticle(raw: Record<string, unknown>, index = 0): Article {
