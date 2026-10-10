@@ -1,6 +1,7 @@
 import '../../generated/design-tokens.css';
 import './globals.css';
 import type { Metadata } from 'next';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import ChromeHost from '@/components/chrome/ChromeHost';
 import Footer from '@/components/chrome/Footer';
 import PartnerBanners from '@/components/cms/PartnerBanners';
@@ -76,6 +77,7 @@ export default async function RootLayout({
         <PartnerBanners position="footer" />
         <Footer />
         <PartnerBanners position="popup" />
+        <GoogleAnalytics gaId="G-75GY5TF4BC" />
       </body>
     </html>
   );
