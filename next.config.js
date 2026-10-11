@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  trailingSlash: false,
   images: {
-    formats: ["image/webp"],
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -33,6 +34,27 @@ const nextConfig = {
         hostname: "localhost",
       },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [{ type: "host", value: "www.chutedointerior.com" }],
+        destination: "https://chutedointerior.com",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.chutedointerior.com" }],
+        destination: "https://chutedointerior.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/artigo/:slug",
+        destination: "/noticia/:slug",
+        permanent: true,
+      },
+    ];
   },
   async headers() {
     return [

@@ -6,8 +6,9 @@ import ChromeHost from '@/components/chrome/ChromeHost';
 import Footer from '@/components/chrome/Footer';
 import PartnerBanners from '@/components/cms/PartnerBanners';
 import { getAlerts, getBreakingHeadlines } from '@/lib/cms-client';
-import { siteConfig } from '@/lib/site-config';
 import { hasCapability } from '@/lib/capabilities';
+import { siteUrl } from '@/lib/seo';
+import { siteConfig } from '@/lib/site-config';
 
 export const metadata: Metadata = {
   title: {
@@ -15,9 +16,8 @@ export const metadata: Metadata = {
     default: siteConfig.siteName,
   },
   description: siteConfig.description,
-  metadataBase: siteConfig.seo.canonicalHost
-    ? new URL(siteConfig.seo.canonicalHost)
-    : undefined,
+  metadataBase: new URL(siteUrl),
+  alternates: { types: { 'application/rss+xml': '/rss.xml' } },
   openGraph: {
     title: siteConfig.siteName,
     description: siteConfig.description,
@@ -25,6 +25,33 @@ export const metadata: Metadata = {
     images: [{ url: siteConfig.seo.defaultOgImage }],
   },
 };
+
+function WebsiteSchema() {
+  const json = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: siteConfig.siteName,
+        url: siteUrl,
+      },
+      {
+        '@type': 'WebSite',
+        name: siteConfig.siteName,
+        url: siteUrl,
+        inLanguage: siteConfig.locale.dialect,
+        description: siteConfig.description,
+        publisher: { '@type': 'Organization', name: siteConfig.siteName, url: siteUrl },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${siteUrl}/busca?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
+}
 
 export default async function RootLayout({
   children,
@@ -63,6 +90,7 @@ export default async function RootLayout({
         data-footer-family={siteConfig.chrome?.footer?.family || 'legacy'}
         className={`flex min-h-screen flex-col overflow-x-hidden ${densityClass} ${motionClass}`}
       >
+        <WebsiteSchema />
         <a
           href="#conteudo-principal"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:ring"
