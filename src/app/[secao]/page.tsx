@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import SectionArticles from '@/components/cms/SectionArticles';
+import { pageMetadata } from '@/lib/seo';
 import { cmsSectionBySlug, cmsSections } from '@/lib/sections';
 import { siteConfig } from '@/lib/site-config';
 
 export const revalidate = 60;
+/** Avoid stale CSS manifest races on dynamic section routes during `next dev`. */
+export const dynamicParams = true;
 
 interface PageProps {
   params: Promise<{ secao: string }>;
@@ -20,10 +23,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { secao } = await params;
   const section = cmsSectionBySlug(secao);
   if (!section) return { title: 'Seção' };
-  return {
+  return pageMetadata({
     title: section.label,
     description: `${section.label} em ${siteConfig.siteName}`,
-  };
+    path: section.href,
+  });
 }
 
 export default async function SectionPage({ params }: PageProps) {

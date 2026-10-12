@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import CmsImage from '@/components/ui/CmsImage';
 import type { Article } from '@/lib/cms-client';
 import { formatRelativeDatePtBr, cn } from '@/lib/utils';
 
@@ -48,7 +48,7 @@ export default function ArticleCard({
         <Link href={href} className={cn('block', focusRing)}>
           <div className="relative aspect-[16/9] w-full">
             {article.imageUrl ? (
-              <Image
+              <CmsImage
                 src={article.imageUrl}
                 alt=""
                 fill
@@ -101,7 +101,7 @@ export default function ArticleCard({
           )}
         >
           {article.imageUrl ? (
-            <Image
+            <CmsImage
               src={article.imageUrl}
               alt=""
               fill
@@ -166,7 +166,7 @@ export default function ArticleCard({
       <Link href={href} className={cn('block', focusRing)}>
         <div className="relative mb-2 aspect-[4/3] overflow-hidden rounded">
           {article.imageUrl ? (
-            <Image
+            <CmsImage
               src={article.imageUrl}
               alt=""
               fill

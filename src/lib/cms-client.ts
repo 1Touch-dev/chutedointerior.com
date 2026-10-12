@@ -26,13 +26,21 @@ function slugify(value: string): string {
 }
 
 function isPublic(doc: Record<string, unknown>): boolean {
-  if (doc.publishState === 'needs_review') return false;
+  // Deny-by-default — only published rows on the public site.
+  if (String(doc.publishState || '') !== 'published') return false;
   const scheduled = doc.scheduledTime;
   if (scheduled) {
     const t = new Date(String(scheduled)).getTime();
     if (!Number.isNaN(t) && t > Date.now()) return false;
   }
   return true;
+}
+
+/** Stable to the minute so Next fetch cache + revalidate actually hit. */
+function scheduledBeforeBucket(): string {
+  const bucket = new Date();
+  bucket.setUTCSeconds(0, 0);
+  return bucket.toISOString();
 }
 
 function assignmentNames(raw: Record<string, unknown>): string[] {
@@ -161,9 +169,24 @@ function mapCmsArticle(raw: Record<string, unknown>, index = 0): Article {
   const categorySlug = known?.slug || slugify(categoryName) || 'noticias';
   const authors = Array.isArray(raw.authorNames) ? (raw.authorNames as string[]) : [];
   const images = Array.isArray(raw.imageUrls) ? (raw.imageUrls as string[]) : [];
+  const videos = Array.isArray(raw.videoUrls) ? (raw.videoUrls as string[]) : [];
   const seo = raw.seo && typeof raw.seo === 'object' ? (raw.seo as Record<string, unknown>) : {};
   const published =
-    (raw.createdAt as string) || (raw.scheduledTime as string) || new Date().toISOString();
+    (raw.scheduledTime as string) || (raw.createdAt as string) || new Date().toISOString();
+  const updatedAt =
+    (typeof raw.updatedAt === 'string' && raw.updatedAt) ||
+    (typeof raw.seoEnrichedAt === 'string' && raw.seoEnrichedAt) ||
+    published;
+  const videoUrl = videos.find((url) => typeof url === 'string' && url.trim()) || undefined;
+  const faq = (Array.isArray(raw.faq) ? raw.faq : [])
+    .flatMap((row) => {
+      if (!row || typeof row !== 'object') return [];
+      const item = row as { question?: unknown; answer?: unknown };
+      const question = String(item.question || '').trim();
+      const answer = String(item.answer || '').trim();
+      if (!question || !answer) return [];
+      return [{ question, answer }];
+    });
 
   return {
     id: String(raw._id || raw.id || raw.slug || index),
@@ -175,10 +198,13 @@ function mapCmsArticle(raw: Record<string, unknown>, index = 0): Article {
     categorySlug,
     author: authors[0] || 'Redação',
     publishedAt: published,
+    updatedAt,
     imageUrl: images[0],
-    isVideo: Array.isArray(raw.videoUrls) && (raw.videoUrls as string[]).length > 0,
+    isVideo: Boolean(videoUrl),
+    videoUrl,
     readCount: typeof raw.views === 'number' ? raw.views : undefined,
     featured: index === 0,
+    faq: faq.length > 0 ? faq : undefined,
   };
 }
 
@@ -200,14 +226,15 @@ async function fetchEndpoint(endpoint: string, limit = 20, page = 1): Promise<Ar
     endpoint,
     limit: String(limit),
     page: String(page),
-    sort: 'createdAt',
+    sort: 'scheduledTime',
     order: 'desc',
+    scheduledBefore: scheduledBeforeBucket(),
   });
 
   try {
     const res = await fetch(`${CMS_BASE}/ai-articles?${params.toString()}`, {
       headers: { Accept: 'application/json' },
-      next: { revalidate: 60 },
+      next: { revalidate: 30 },
     });
     if (!res.ok) return null;
     const json = (await res.json()) as ListPayload;
@@ -247,6 +274,20 @@ export async function getArticlesByEndpoint(endpoint: string, limit = 20, page =
 
 export async function getLatestArticles(limit = 10): Promise<Article[]> {
   return sortByDate(listed(await fetchEndpoint('HomePage', Math.max(limit, 12)))).slice(0, limit);
+}
+
+/** Paginate HomePage for sitemap / RSS (published-only via isPublic). */
+export async function getAllPublishedArticles(maxPages = 25, pageSize = 50): Promise<Article[]> {
+  const bySlug = new Map<string, Article>();
+  for (let page = 1; page <= maxPages; page += 1) {
+    const batch = listed(await fetchEndpoint('HomePage', pageSize, page));
+    if (!batch.length) break;
+    for (const article of batch) {
+      if (article.slug) bySlug.set(article.slug, article);
+    }
+    if (batch.length < pageSize) break;
+  }
+  return sortByDate([...bySlug.values()]);
 }
 
 function unwrapArticle(json: unknown): Record<string, unknown> | null {

@@ -21,11 +21,14 @@ export interface Article {
   categorySlug: string;
   author: string;
   publishedAt: string;
+  updatedAt?: string;
   imageUrl?: string;
   isVideo?: boolean;
+  videoUrl?: string;
   readCount?: number;
   featured?: boolean;
   keyPoints?: string[];
+  faq?: Array<{ question: string; answer: string }>;
 }
 
 export interface BreakingHeadline {

@@ -1,14 +1,16 @@
-import Image from 'next/image';
 import Link from 'next/link';
+import ArticleFaq from '@/components/article/ArticleFaq';
 import ArticleSentiment from '@/components/article/ArticleSentiment';
 import PartnerBanners from '@/components/cms/PartnerBanners';
-import { navHrefForSlug } from '@/lib/competitions';
 import ArticleCard from '@/components/cards/ArticleCard';
 import ArticleKeyPoints from '@/components/article/ArticleKeyPoints';
+import CmsImage from '@/components/ui/CmsImage';
 import type { Article } from '@/lib/cms-client';
-import { formatDatePtBr } from '@/lib/utils';
-import { siteConfig } from '@/lib/site-config';
 import { hasCapability } from '@/lib/capabilities';
+import { navHrefForSlug } from '@/lib/competitions';
+import { siteConfig } from '@/lib/site-config';
+import { formatDatePtBr } from '@/lib/utils';
+import { youtubeId } from '@/lib/youtube';
 
 interface ArticleLayoutProps {
   article: Article;
@@ -45,16 +47,31 @@ function KeyPointsBlock({
   );
 }
 
+function FaqBlock({ article, inverted = false }: { article: Article; inverted?: boolean }) {
+  if (!article.faq?.length) return null;
+  return <ArticleFaq items={article.faq} inverted={inverted} />;
+}
+
 function Breadcrumb({ article }: { article: Article }) {
   return (
-    <nav className="mb-4 text-xs text-muted">
-      <Link href="/" className="hover:text-primary">
-        Início
-      </Link>
-      <span className="mx-2">/</span>
-      <Link href={navHrefForSlug(article.categorySlug)} className="hover:text-primary">
-        {article.category}
-      </Link>
+    <nav className="mb-4 text-xs text-muted" aria-label="Breadcrumb">
+      <ol className="flex flex-wrap items-center gap-x-2">
+        <li>
+          <Link href="/" className="hover:text-primary">
+            Início
+          </Link>
+        </li>
+        <li aria-hidden>/</li>
+        <li>
+          <Link href={navHrefForSlug(article.categorySlug)} className="hover:text-primary">
+            {article.category}
+          </Link>
+        </li>
+        <li aria-hidden>/</li>
+        <li className="truncate text-foreground" aria-current="page">
+          {article.title}
+        </li>
+      </ol>
     </nav>
   );
 }
@@ -70,6 +87,23 @@ function MetaBadges({ article }: { article: Article }) {
           Vídeo
         </span>
       )}
+    </div>
+  );
+}
+
+function ArticleVideo({ article }: { article: Article }) {
+  const id = youtubeId(article.videoUrl);
+  if (!id) return null;
+  return (
+    <div className="mt-6 aspect-video overflow-hidden rounded-xl border border-black/10 bg-black">
+      <iframe
+        title={article.title}
+        src={`https://www.youtube.com/embed/${id}`}
+        className="h-full w-full border-0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        loading="lazy"
+      />
     </div>
   );
 }
@@ -114,7 +148,7 @@ function MediaRichStory({ article, related }: ArticleLayoutProps) {
     <article className="bg-[#0b0f14] text-white">
       {article.imageUrl && (
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary md:aspect-[2.35/1]">
-          <Image
+          <CmsImage
             src={article.imageUrl}
             alt=""
             fill
@@ -155,10 +189,12 @@ function MediaRichStory({ article, related }: ArticleLayoutProps) {
           <Byline article={article} />
         </div>
         <KeyPointsBlock article={article} inverted />
+        <ArticleVideo article={article} />
         <ArticleHtml
           className="prose prose-invert mt-8 max-w-none font-body text-base leading-[1.7] prose-headings:font-display prose-headings:uppercase prose-a:text-accent"
           html={article.content}
         />
+        <FaqBlock article={article} inverted />
         <div className="[&_h2]:text-white [&_h3]:text-white [&_.text-muted]:text-white/50 [&_.text-foreground]:text-white [&_.text-primary]:text-accent [&_.border-black\\/10]:border-white/10">
           <RelatedBlock related={related} variant="horizontal" />
         </div>
@@ -197,7 +233,7 @@ function LongformFocused({ article, related }: ArticleLayoutProps) {
 
         {article.imageUrl && (
           <figure className="relative mt-12 aspect-[16/10] overflow-hidden bg-surface">
-            <Image
+            <CmsImage
               src={article.imageUrl}
               alt=""
               fill
@@ -213,6 +249,7 @@ function LongformFocused({ article, related }: ArticleLayoutProps) {
           className="prose prose-lg prose-neutral mt-12 max-w-none font-article leading-[1.85] prose-headings:font-display prose-headings:tracking-[-0.01em] prose-p:text-secondary/90 prose-a:text-primary"
           html={article.content}
         />
+        <FaqBlock article={article} />
         <RelatedBlock related={related} variant="compact" />
       </div>
     </article>
@@ -239,7 +276,7 @@ function SplitRailStory({ article, related }: ArticleLayoutProps) {
 
           {article.imageUrl && (
             <div className="relative mt-6 aspect-video overflow-hidden rounded-xl">
-              <Image
+              <CmsImage
                 src={article.imageUrl}
                 alt=""
                 fill
@@ -254,6 +291,7 @@ function SplitRailStory({ article, related }: ArticleLayoutProps) {
             className="prose prose-neutral mt-8 max-w-none font-article leading-relaxed"
             html={article.content}
           />
+          <FaqBlock article={article} />
         </article>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
@@ -296,11 +334,12 @@ function InterviewFocus({ article, related }: ArticleLayoutProps) {
             className="prose prose-neutral mt-8 max-w-none font-article"
             html={article.content}
           />
+          <FaqBlock article={article} />
         </div>
         <aside className="space-y-4">
           {article.imageUrl && (
             <div className="relative aspect-[4/5] overflow-hidden rounded-2xl">
-              <Image
+              <CmsImage
                 src={article.imageUrl}
                 alt=""
                 fill
@@ -323,7 +362,7 @@ function GalleryLead({ article, related }: ArticleLayoutProps) {
       <div className="grid gap-2 bg-secondary p-2 md:grid-cols-3">
         <div className="relative aspect-[4/3] md:col-span-2 md:aspect-auto md:min-h-[420px]">
           {article.imageUrl && (
-            <Image
+            <CmsImage
               src={article.imageUrl}
               alt=""
               fill
@@ -341,6 +380,7 @@ function GalleryLead({ article, related }: ArticleLayoutProps) {
       </div>
       <div className="mx-auto max-w-3xl px-4 py-8">
         <ArticleHtml className="prose prose-lg max-w-none" html={article.content} />
+        <FaqBlock article={article} />
         <RelatedBlock related={related} variant="compact" />
       </div>
     </article>
@@ -359,6 +399,7 @@ function OpinionColumn({ article, related }: ArticleLayoutProps) {
         <p className="mt-6 text-xl leading-relaxed text-muted-text">{article.excerpt}</p>
       )}
       <ArticleHtml className="prose prose-lg mt-10 max-w-none font-body" html={article.content} />
+      <FaqBlock article={article} />
       <RelatedBlock related={related} variant="horizontal" />
     </article>
   );

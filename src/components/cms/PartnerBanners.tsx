@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { getPartnerBanners, type PartnerPosition } from '@/lib/banners';
 import PartnerPopup from '@/components/cms/PartnerPopup';
 
@@ -11,12 +12,20 @@ function BannerImage({
   name?: string;
 }) {
   const image = (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={imageUrl} alt={name || 'Parceiro'} className="mx-auto h-auto max-h-28 w-full object-contain" />
+    // Partner creatives are arbitrary remote sizes — fixed slot prevents CLS.
+    <img
+      src={imageUrl}
+      alt={name || 'Parceiro'}
+      width={728}
+      height={90}
+      className="mx-auto h-full max-h-24 w-full object-contain sm:max-h-28"
+      loading="lazy"
+      decoding="async"
+    />
   );
   if (!linkUrl) return image;
   return (
-    <a href={linkUrl} target="_blank" rel="sponsored noopener noreferrer" className="block">
+    <a href={linkUrl} target="_blank" rel="sponsored noopener noreferrer" className="block h-full">
       {image}
     </a>
   );
@@ -37,10 +46,13 @@ export default async function PartnerBanners({
   }
 
   return (
-    <aside aria-label={`Parceiros ${position}`} className={className}>
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3">
+    <aside aria-label={`Parceiros ${position}`} className={`min-w-0 ${className}`}>
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-2 sm:gap-3 sm:py-3">
         {banners.map((banner, index) => (
-          <div key={`${banner.imageUrl}-${index}`} className="border border-black/10 bg-white p-2">
+          <div
+            key={banner._id || `${banner.imageUrl}-${index}`}
+            className="flex min-h-[96px] items-center justify-center overflow-hidden rounded-lg border border-black/10 bg-white p-2 sm:min-h-[112px]"
+          >
             <BannerImage imageUrl={banner.imageUrl} linkUrl={banner.linkUrl} name={banner.partnerName} />
           </div>
         ))}

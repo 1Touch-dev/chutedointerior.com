@@ -23,11 +23,12 @@ export default function ScoreboardStrip() {
           {matches.some((m) => m.statusKind === 'live') ? 'Ver ao vivo' : 'Central de partidas'}
         </Link>
       </div>
-      <div className="overflow-x-auto rounded-lg bg-[#0B3D2E] text-white">
-        <div className="flex min-w-max divide-x divide-white/10">
+      <div className="overflow-x-auto overscroll-x-contain rounded-lg bg-[#0B3D2E] text-white touch-pan-x [-webkit-overflow-scrolling:touch]">
+        <div className="flex min-w-max snap-x snap-mandatory divide-x divide-white/10">
           {matches.map((match) => (
             <motion.div
               key={match.id}
+              className="snap-start"
               variants={scoreUpdateFlash}
               initial="idle"
               whileHover={reduced ? undefined : 'flash'}

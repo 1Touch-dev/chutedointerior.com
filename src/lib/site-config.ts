@@ -152,6 +152,7 @@ export interface SiteConfig {
     FOOTBALL_SCORERS?: string;
     FOOTBALL_TEAMS?: string;
     FOOTBALL_LEAGUES?: string;
+    FOOTBALL_BRAZIL_LEAGUE?: string;
     MARKETS?: string;
   };
 }
@@ -252,6 +253,13 @@ export const siteConfig: SiteConfig = {
       "slug": "libertadores",
       "name": "Libertadores",
       "leagueId": 13,
+      "season": 2026,
+      "kind": "cup"
+    },
+    {
+      "slug": "sudamericana",
+      "name": "Sul-Americana",
+      "leagueId": 11,
       "season": 2026,
       "kind": "cup"
     },
@@ -382,12 +390,13 @@ export const siteConfig: SiteConfig = {
     }
   },
   integrations: {
-    "FOOTBALL_LIVE": "/football/live",
+    "FOOTBALL_LIVE": "/football/fixtures?live=all",
     "FOOTBALL_FIXTURES": "/football/fixtures?league=71&season=2026",
     "FOOTBALL_STANDINGS": "/football/standings?league=71&season=2026",
     "FOOTBALL_SCORERS": "/football/topscorers?league=71&season=2026",
     "FOOTBALL_TEAMS": "/football/teams?league=71&season=2026",
-    "FOOTBALL_LEAGUES": "/football/leagues",
+    "FOOTBALL_LEAGUES": "/football/brazil/leagues",
+    "FOOTBALL_BRAZIL_LEAGUE": "/football/brazil/league/brasileirao?season=2026",
     "MARKETS": "TODO_MARKETS_API",
     "ARTICLES_LIST": "/ai-articles?targetWebsite=chutedointerior.com&endpoint=HomePage&limit=20&page=1&sort=createdAt&order=desc",
     "ARTICLE_BY_SLUG": "/ai-articles/slug/{slug}?targetWebsite=chutedointerior.com",

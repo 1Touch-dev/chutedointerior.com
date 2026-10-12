@@ -10,16 +10,16 @@ export default function StandingsTable({ rows }: { rows: StandingRow[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
-      <table className="w-full min-w-[28rem] border-collapse text-sm">
+    <div className="min-w-0 overflow-x-auto overscroll-x-contain rounded-xl border border-black/10 bg-white [-webkit-overflow-scrolling:touch]">
+      <table className="w-full min-w-[17rem] border-collapse text-sm">
         <caption className="sr-only">Classificação</caption>
         <thead>
           <tr className="border-b border-black/10 text-left text-[10px] font-bold uppercase tracking-wider text-muted">
-            <th className="px-3 py-2.5 w-10">#</th>
-            <th className="px-3 py-2.5">Time</th>
-            <th className="px-3 py-2.5 text-right tabular-nums">J</th>
-            <th className="px-3 py-2.5 text-right tabular-nums">SG</th>
-            <th className="px-3 py-2.5 text-right tabular-nums">Pts</th>
+            <th className="w-8 px-2 py-2.5 sm:px-3">#</th>
+            <th className="px-2 py-2.5 sm:px-3">Time</th>
+            <th className="px-2 py-2.5 text-right tabular-nums sm:px-3">J</th>
+            <th className="px-2 py-2.5 text-right tabular-nums sm:px-3">SG</th>
+            <th className="px-2 py-2.5 text-right tabular-nums sm:px-3">Pts</th>
           </tr>
         </thead>
         <tbody>
@@ -28,8 +28,8 @@ export default function StandingsTable({ rows }: { rows: StandingRow[] }) {
               key={`${row.rank}-${row.team.id || row.team.name}`}
               className="border-b border-black/[0.06] last:border-0"
             >
-              <td className="px-3 py-2.5 tabular-nums text-muted">{row.rank}</td>
-              <td className="px-3 py-2.5">
+              <td className="px-2 py-2.5 tabular-nums text-muted sm:px-3">{row.rank}</td>
+              <td className="max-w-[10rem] px-2 py-2.5 sm:max-w-none sm:px-3">
                 <span className="inline-flex min-w-0 items-center gap-2">
                   {row.team.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -38,10 +38,10 @@ export default function StandingsTable({ rows }: { rows: StandingRow[] }) {
                       alt=""
                       width={22}
                       height={22}
-                      className="h-[22px] w-[22px] object-contain"
+                      className="h-[22px] w-[22px] shrink-0 object-contain"
                     />
                   ) : null}
-                  <span className="font-semibold text-secondary">{row.team.name}</span>
+                  <span className="truncate font-semibold text-secondary">{row.team.name}</span>
                 </span>
               </td>
               <td className="px-3 py-2.5 text-right tabular-nums text-muted">

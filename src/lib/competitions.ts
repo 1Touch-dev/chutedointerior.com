@@ -53,6 +53,13 @@ export function brazilSportsCompetitionPack(
       kind: 'cup',
     },
     {
+      slug: 'sudamericana',
+      name: 'Sul-Americana',
+      leagueId: 11,
+      season,
+      kind: 'cup',
+    },
+    {
       slug: 'selecao',
       name: 'Seleção',
       leagueId: 34,

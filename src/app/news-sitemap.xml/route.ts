@@ -1,7 +1,8 @@
-import { getLatestArticles } from "@/lib/cms-client";
-import { siteConfig } from "@/lib/site-config";
-import { absoluteUrl } from "@/lib/site-url";
-import { escapeXml } from "@/lib/xml";
+import { getLatestArticles } from '@/lib/cms-client';
+import { notifyIndexNow } from '@/lib/indexnow';
+import { siteConfig } from '@/lib/site-config';
+import { absoluteUrl } from '@/lib/site-url';
+import { escapeXml } from '@/lib/xml';
 
 export const revalidate = 120;
 
@@ -9,8 +10,11 @@ const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
 
 export const GET = async () => {
   const cutoff = Date.now() - TWO_DAYS;
-  const items = (await getLatestArticles(200))
-    .filter((article) => new Date(article.publishedAt).getTime() >= cutoff)
+  const recent = (await getLatestArticles(200)).filter(
+    (article) => new Date(article.publishedAt).getTime() >= cutoff
+  );
+
+  const items = recent
     .map((article) => {
       const loc = absoluteUrl(`/artigo/${article.slug}`);
       return `<url>
@@ -25,7 +29,9 @@ export const GET = async () => {
         </news:news>
       </url>`;
     })
-    .join("");
+    .join('');
+
+  void notifyIndexNow(recent.map((article) => absoluteUrl(`/artigo/${article.slug}`)));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
@@ -33,6 +39,9 @@ export const GET = async () => {
   </urlset>`;
 
   return new Response(xml, {
-    headers: { "Content-Type": "application/xml; charset=utf-8" },
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+    },
   });
 };

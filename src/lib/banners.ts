@@ -1,31 +1,36 @@
+import { isLikelyImageUrl } from '@/lib/banner-html';
 import { siteConfig } from '@/lib/site-config';
 
-export interface EditorialBanner {
+/** CMS public banner payload (avoid colliding with the React component name). */
+export interface IEditorialBanner {
+  _id?: string;
   type?: string;
   title?: string;
-  description?: string;
   url?: string;
   imageUrl?: string;
   htmlContent?: string;
   ctaUrl?: string;
-  ctaLabel?: string;
+  isActive?: boolean;
+  status?: string;
 }
 
 interface BannerResponse {
-  banner?: EditorialBanner | null;
-  banners?: EditorialBanner[];
+  banner?: IEditorialBanner | null;
+  banners?: IEditorialBanner[];
 }
 
 const base = (siteConfig.cms.baseUrl || '').replace(/\/$/, '');
 
-const isUsable = (banner: EditorialBanner) => {
+const isUsable = (banner: IEditorialBanner) => {
+  if (banner.isActive === false || banner.status === 'inactive') return false;
   if (banner.type === 'html') return Boolean(banner.htmlContent?.trim());
-  return Boolean((banner.imageUrl ?? banner.url)?.trim());
+  return Boolean(banner.imageUrl?.trim() || isLikelyImageUrl(banner.url));
 };
 
-export type PartnerPosition = 'header' | 'content' | 'footer' | 'popup';
+export type PartnerPosition = 'header' | 'content' | 'footer' | 'popup' | 'sidebar';
 
 export interface PartnerBanner {
+  _id?: string;
   imageUrl: string;
   linkUrl?: string;
   position?: PartnerPosition;
@@ -57,7 +62,7 @@ export const getPartnerBanners = async (position: PartnerPosition): Promise<Part
     });
     const res = await fetch(`${base}/partnerships/banners?${params.toString()}`, {
       headers: { Accept: 'application/json' },
-      next: { revalidate: 120 },
+      next: { revalidate: 30 },
     });
     if (!res.ok) return [];
     const json = (await res.json()) as { banners?: PartnerBanner[] };
@@ -69,15 +74,17 @@ export const getPartnerBanners = async (position: PartnerPosition): Promise<Part
   }
 };
 
-export const getEditorialBanners = async (): Promise<EditorialBanner[]> => {
+export const getEditorialBanners = async (): Promise<IEditorialBanner[]> => {
   if (!base) return [];
   try {
     const url = `${base}/banners/public/${encodeURIComponent(siteConfig.cms.websiteKey)}`;
-    const res = await fetch(url, { headers: { Accept: 'application/json' }, next: { revalidate: 120 } });
+    const res = await fetch(url, { headers: { Accept: 'application/json' }, next: { revalidate: 30 } });
     if (!res.ok) return [];
     const json = (await res.json()) as BannerResponse;
     const list = Array.isArray(json.banners) && json.banners.length > 0 ? json.banners : [json.banner];
-    return list.filter((banner): banner is EditorialBanner => Boolean(banner) && isUsable(banner as EditorialBanner));
+    return list.filter(
+      (banner): banner is IEditorialBanner => Boolean(banner) && isUsable(banner as IEditorialBanner)
+    );
   } catch {
     return [];
   }

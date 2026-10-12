@@ -8,7 +8,7 @@ import { fetchLiveMatches, fetchUpcoming } from '@/lib/football-client';
 import { getCompetitions } from '@/lib/competitions';
 import { siteConfig } from '@/lib/site-config';
 
-export const revalidate = 30;
+export const revalidate = 15;
 
 export const metadata = {
   title: 'Ao vivo',
@@ -30,9 +30,9 @@ export default async function AoVivoPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
+    <div className="mx-auto min-w-0 max-w-7xl space-y-6 px-4 py-6 sm:space-y-8 sm:py-8">
       <header className="border-b-4 border-primary pb-3">
-        <h1 className="font-display text-4xl uppercase tracking-wide text-secondary md:text-5xl">
+        <h1 className="font-display text-3xl uppercase tracking-wide text-secondary sm:text-4xl md:text-5xl">
           Ao vivo
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">

@@ -112,13 +112,13 @@ export default function MatchCard({
   return (
     <article
       className={cn(
-        'rounded-xl border border-black/[0.08] bg-white px-4 py-3.5 transition-colors duration-150',
+        'min-w-0 rounded-xl border border-black/[0.08] bg-white px-3 py-3 transition-colors duration-150 sm:px-4 sm:py-3.5',
         'hover:border-primary/40',
         live && 'border-primary/30 bg-[#0B3D2E] text-white hover:border-accent/50'
       )}
     >
-      <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-wide">
-        <span className={cn(live ? 'text-accent' : 'text-muted')}>
+      <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide">
+        <span className={cn('shrink-0', live ? 'text-accent' : 'text-muted')}>
           {live ? (
             <span className="inline-flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#E11D48] motion-reduce:animate-none" />
@@ -131,12 +131,32 @@ export default function MatchCard({
           )}
         </span>
         {match.leagueName ? (
-          <span className={cn('truncate', live ? 'text-white/55' : 'text-muted')}>
+          <span className={cn('min-w-0 truncate text-right', live ? 'text-white/55' : 'text-muted')}>
             {match.leagueName}
           </span>
         ) : null}
       </div>
-      <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+      {/* Mobile: stacked sides; sm+: classic 3-col scoreline */}
+      <div className="mt-3 space-y-2 sm:hidden">
+        <div className="flex items-center justify-between gap-2">
+          <TeamLine team={match.home} align="start" inverted={live} />
+          <span className={cn('shrink-0 font-display text-xl tabular-nums', live ? 'text-white' : 'text-secondary')}>
+            {scheduled ? '–' : match.homeScore}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <TeamLine team={match.away} align="start" inverted={live} />
+          <span className={cn('shrink-0 font-display text-xl tabular-nums', live ? 'text-white' : 'text-secondary')}>
+            {scheduled ? '–' : match.awayScore}
+          </span>
+        </div>
+        {scheduled ? (
+          <p className={cn('text-right text-xs font-semibold uppercase', live ? 'text-white/70' : 'text-muted')}>
+            {formatKickoffTime(match.kickoff) || '—'}
+          </p>
+        ) : null}
+      </div>
+      <div className="mt-3 hidden grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:grid">
         <TeamLine team={match.home} align="end" inverted={live} />
         <p
           className={cn(

@@ -1,39 +1,45 @@
-import type { MetadataRoute } from "next";
-import { absoluteUrl } from "@/lib/site-url";
+import type { MetadataRoute } from 'next';
+import { absoluteUrl } from '@/lib/site-url';
 
 const agents = [
-  "*",
-  "Googlebot",
-  "Bingbot",
-  "GPTBot",
-  "ChatGPT-User",
-  "OAI-SearchBot",
-  "ClaudeBot",
-  "Claude-User",
-  "Claude-SearchBot",
-  "Google-Extended",
-  "PerplexityBot",
-  "Perplexity-User",
-  "Applebot-Extended",
-  "Bytespider",
-  "CCBot",
-  "Amazonbot",
-  "Meta-ExternalAgent",
-  "DuckAssistBot",
-  "cohere-ai",
-  "cohere-training-data-crawler",
-  "Diffbot",
-  "YouBot",
+  '*',
+  'Googlebot',
+  'Bingbot',
+  'GPTBot',
+  'ChatGPT-User',
+  'OAI-SearchBot',
+  'ClaudeBot',
+  'Claude-User',
+  'Claude-SearchBot',
+  'Google-Extended',
+  'PerplexityBot',
+  'Perplexity-User',
+  'Applebot-Extended',
+  'Bytespider',
+  'CCBot',
+  'Amazonbot',
+  'Meta-ExternalAgent',
+  'DuckAssistBot',
+  'cohere-ai',
+  'cohere-training-data-crawler',
+  'Diffbot',
+  'YouBot',
 ];
 
+/** Allow search + AI crawlers; block only non-content / duplicate surfaces. */
 const robots = (): MetadataRoute.Robots => ({
   rules: agents.map((userAgent) => ({
     userAgent,
-    allow: "/",
-    disallow: ["/newsletter/unsubscribe", "/busca"],
+    allow: '/',
+    disallow: [
+      '/newsletter/unsubscribe',
+      '/busca',
+      '/api/',
+      '/_next/',
+    ],
   })),
-  sitemap: [absoluteUrl("/sitemap.xml"), absoluteUrl("/news-sitemap.xml")],
-  host: "chutedointerior.com",
+  sitemap: [absoluteUrl('/sitemap.xml'), absoluteUrl('/news-sitemap.xml')],
+  host: 'chutedointerior.com',
 });
 
 export default robots;

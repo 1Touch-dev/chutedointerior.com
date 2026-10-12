@@ -1,14 +1,34 @@
 import '../../generated/design-tokens.css';
 import './globals.css';
 import type { Metadata } from 'next';
+import { Lora, Open_Sans, Outfit } from 'next/font/google';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import ChromeHost from '@/components/chrome/ChromeHost';
 import Footer from '@/components/chrome/Footer';
 import PartnerBanners from '@/components/cms/PartnerBanners';
 import { getAlerts, getBreakingHeadlines } from '@/lib/cms-client';
 import { hasCapability } from '@/lib/capabilities';
-import { siteUrl } from '@/lib/seo';
+import { organizationJsonLd } from '@/lib/seo';
 import { siteConfig } from '@/lib/site-config';
+import { absoluteUrl } from '@/lib/site-url';
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+});
+
+const openSans = Open_Sans({
+  subsets: ['latin'],
+  variable: '--font-open-sans',
+  display: 'swap',
+});
+
+const lora = Lora({
+  subsets: ['latin'],
+  variable: '--font-lora',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -16,42 +36,34 @@ export const metadata: Metadata = {
     default: siteConfig.siteName,
   },
   description: siteConfig.description,
-  metadataBase: new URL(siteUrl),
-  alternates: { types: { 'application/rss+xml': '/rss.xml' } },
+  metadataBase: siteConfig.seo.canonicalHost
+    ? new URL(siteConfig.seo.canonicalHost)
+    : undefined,
+  applicationName: siteConfig.siteName,
+  icons: {
+    icon: [{ url: '/icon', type: 'image/png' }],
+    shortcut: ['/favicon.ico'],
+  },
+  alternates: {
+    types: {
+      'application/rss+xml': absoluteUrl('/rss.xml'),
+    },
+  },
   openGraph: {
     title: siteConfig.siteName,
     description: siteConfig.description,
     locale: siteConfig.locale.dialect.replace('-', '_'),
+    type: 'website',
+    siteName: siteConfig.siteName,
     images: [{ url: siteConfig.seo.defaultOgImage }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.siteName,
+    description: siteConfig.description,
+    images: [siteConfig.seo.defaultOgImage],
+  },
 };
-
-function WebsiteSchema() {
-  const json = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Organization',
-        name: siteConfig.siteName,
-        url: siteUrl,
-      },
-      {
-        '@type': 'WebSite',
-        name: siteConfig.siteName,
-        url: siteUrl,
-        inLanguage: siteConfig.locale.dialect,
-        description: siteConfig.description,
-        publisher: { '@type': 'Organization', name: siteConfig.siteName, url: siteUrl },
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: `${siteUrl}/busca?q={search_term_string}`,
-          'query-input': 'required name=search_term_string',
-        },
-      },
-    ],
-  };
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
-}
 
 export default async function RootLayout({
   children,
@@ -73,15 +85,10 @@ export default async function RootLayout({
   const motionClass = `motion-${motion}`;
 
   return (
-    <html lang="pt-BR">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-      </head>
+    <html
+      lang="pt-BR"
+      className={`${outfit.variable} ${openSans.variable} ${lora.variable}`}
+    >
       <body
         data-layout={siteConfig.layouts.homepage}
         data-density={density}
@@ -90,7 +97,10 @@ export default async function RootLayout({
         data-footer-family={siteConfig.chrome?.footer?.family || 'legacy'}
         className={`flex min-h-screen flex-col overflow-x-hidden ${densityClass} ${motionClass}`}
       >
-        <WebsiteSchema />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+        />
         <a
           href="#conteudo-principal"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:ring"

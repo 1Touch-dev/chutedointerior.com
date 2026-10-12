@@ -1,0 +1,10 @@
+# Chute do Interior — project intelligence
+
+- Site: chutedointerior.com (NOT raizdeitaquera / boladore / raquete — siblings are pattern refs only).
+- Yarn Classic only. GA4: G-75GY5TF4BC via `@next/third-parties`.
+- Homepage order: EditorialBanner → FootballHome → RecipeHome. Full BrasileiraoBoard on /futebol only.
+- Articles: published-only; bucket `scheduledBefore` to the minute so Next revalidate works.
+- Banners: sanitize CMS HTML; iframe sandbox without scripts/same-origin; single first banner; BANNER_FRAME_CLASS.
+- Football: prefer live in upcoming/nextMatch/ticker before FT results.
+- If `[secao]` throws entryCSSFiles / missing `_document.js` in dev → delete `.next` and restart.
+- Address user as sir; prefer Hinglish unless they ask for full English.

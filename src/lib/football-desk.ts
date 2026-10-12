@@ -1,11 +1,34 @@
 import { cache } from "react";
+import { DEFAULT_SPORTS_SEASON } from "@/lib/competitions";
 import { siteConfig } from "@/lib/site-config";
 
-const SEASON = 2026;
-const LEAGUE_ID = 71;
-const LEAGUE_SLUG = "brasileirao";
+const SEASON = DEFAULT_SPORTS_SEASON;
+
+/** Brazil football-desk pack — mirrors CMS `/football/brazil/*` + fixture wrappers. */
+const BRAZIL_DESK_LEAGUES: Record<
+  string,
+  { apiSlug: string; leagueId: number; fallbackName: string }
+> = {
+  brasileirao: { apiSlug: "brasileirao", leagueId: 71, fallbackName: "Brasileirão Série A" },
+  "serie-b": { apiSlug: "serie-b", leagueId: 72, fallbackName: "Brasileirão Série B" },
+  "copa-do-brasil": { apiSlug: "copa-do-brasil", leagueId: 73, fallbackName: "Copa do Brasil" },
+  libertadores: { apiSlug: "libertadores", leagueId: 13, fallbackName: "Copa Libertadores" },
+  sudamericana: { apiSlug: "sudamericana", leagueId: 11, fallbackName: "Copa Sudamericana" },
+  selecao: { apiSlug: "eliminatorias", leagueId: 34, fallbackName: "Eliminatórias CONMEBOL" },
+  eliminatorias: { apiSlug: "eliminatorias", leagueId: 34, fallbackName: "Eliminatórias CONMEBOL" },
+};
 
 const apiBase = (siteConfig.cms.baseUrl || "https://api.chutedointerior.com/api").replace(/\/$/, "");
+
+export type BrazilDeskSlug = keyof typeof BRAZIL_DESK_LEAGUES;
+
+export function resolveBrazilDeskLeague(slug = "brasileirao") {
+  return BRAZIL_DESK_LEAGUES[slug] ?? BRAZIL_DESK_LEAGUES.brasileirao;
+}
+
+export function hasBrazilDeskLeague(slug: string): boolean {
+  return slug in BRAZIL_DESK_LEAGUES;
+}
 
 const FINISHED = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
 const LIVE = new Set(["1H", "2H", "HT", "ET", "BT", "P", "LIVE", "INT", "SUSP"]);
@@ -82,9 +105,38 @@ export interface IMatchEvent {
   kind: "goal" | "card";
 }
 
+export interface IMatchLineupPlayer {
+  name: string;
+  number: number | null;
+  pos?: string;
+}
+
+export interface IMatchLineupSide {
+  teamId: number;
+  teamName: string;
+  teamLogo?: string;
+  formation?: string;
+  startXI: IMatchLineupPlayer[];
+}
+
+export interface IMatchStatGroup {
+  teamName: string;
+  teamLogo?: string;
+  items: { type: string; value: string }[];
+}
+
 export interface IMatchPage {
   match: IFootballMatch;
   events: IMatchEvent[];
+  lineups: IMatchLineupSide[];
+  stats: IMatchStatGroup[];
+}
+
+export interface IBrazilLeagueRef {
+  slug: string;
+  id: number;
+  name: string;
+  namePt?: string;
 }
 
 export interface ITeamPage {
@@ -365,7 +417,7 @@ const mapEvents = (value: unknown): IMatchEvent[] =>
 const footballGet = async (path: string): Promise<unknown> => {
   try {
     const response = await fetch(`${apiBase}${path}`, {
-      next: { revalidate: 120 },
+      next: { revalidate: 30 },
       headers: { accept: "application/json" },
     });
     if (!response.ok) return null;
@@ -377,12 +429,77 @@ const footballGet = async (path: string): Promise<unknown> => {
 
 const byDate = (left: IFootballMatch, right: IFootballMatch) => left.date.localeCompare(right.date);
 
-export const getFootballDesk = cache(async (): Promise<IFootballDesk | null> => {
-  const [bundle, nextPayload, finishedPayload, livePayload] = await Promise.all([
-    footballGet(`/football/brazil/league/${LEAGUE_SLUG}?season=${SEASON}`),
-    footballGet(`/football/fixtures?league=${LEAGUE_ID}&season=${SEASON}&next=12`),
-    footballGet(`/football/fixtures?league=${LEAGUE_ID}&season=${SEASON}&status=FT&last=12`),
+const teamsFromMatches = (matches: IFootballMatch[]): IFootballTeamRef[] => {
+  const byId = new Map<number, IFootballTeamRef>();
+  for (const match of matches) {
+    byId.set(match.home.id, { id: match.home.id, name: match.home.name, logo: match.home.logo });
+    byId.set(match.away.id, { id: match.away.id, name: match.away.name, logo: match.away.logo });
+  }
+  return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+};
+
+const mapLineups = (payload: unknown): IMatchLineupSide[] =>
+  listFrom(isRecord(payload) ? payload.response : payload).flatMap((row) => {
+    if (!isRecord(row)) return [];
+    const team = isRecord(row.team) ? row.team : {};
+    const teamId = num(team.id);
+    const teamName = str(team.name);
+    if (teamId == null || !teamName) return [];
+    const startXI = (Array.isArray(row.startXI) ? row.startXI : []).flatMap((entry) => {
+      if (!isRecord(entry)) return [];
+      const player = isRecord(entry.player) ? entry.player : entry;
+      const name = str(player.name);
+      if (!name) return [];
+      return [{ name, number: num(player.number), pos: str(player.pos) }];
+    });
+    return [
+      {
+        teamId,
+        teamName,
+        teamLogo: str(team.logo),
+        formation: str(row.formation),
+        startXI,
+      },
+    ];
+  });
+
+const mapStats = (payload: unknown): IMatchStatGroup[] =>
+  listFrom(isRecord(payload) ? payload.response : payload).flatMap((row) => {
+    if (!isRecord(row)) return [];
+    const team = isRecord(row.team) ? row.team : {};
+    const teamName = str(team.name);
+    if (!teamName) return [];
+    const items = (Array.isArray(row.statistics) ? row.statistics : []).flatMap((stat) => {
+      if (!isRecord(stat)) return [];
+      const type = str(stat.type);
+      if (!type) return [];
+      const value = stat.value == null ? "–" : String(stat.value);
+      return [{ type, value }];
+    });
+    return [{ teamName, teamLogo: str(team.logo), items }];
+  });
+
+export const getBrazilLeagues = cache(async (): Promise<IBrazilLeagueRef[]> => {
+  const payload = await footballGet(`/football/brazil/leagues?season=${SEASON}`);
+  const rows = isRecord(payload) && Array.isArray(payload.leagues) ? payload.leagues : [];
+  return rows.flatMap((row) => {
+    if (!isRecord(row)) return [];
+    const slug = str(row.slug);
+    const id = num(row.id);
+    const name = str(row.namePt) || str(row.name);
+    if (!slug || id == null || !name) return [];
+    return [{ slug, id, name, namePt: str(row.namePt) }];
+  });
+});
+
+export const getFootballDesk = cache(async (slug = "brasileirao"): Promise<IFootballDesk | null> => {
+  const leagueMeta = resolveBrazilDeskLeague(slug);
+  const [bundle, nextPayload, finishedPayload, livePayload, teamsPayload] = await Promise.all([
+    footballGet(`/football/brazil/league/${leagueMeta.apiSlug}?season=${SEASON}`),
+    footballGet(`/football/fixtures?league=${leagueMeta.leagueId}&season=${SEASON}&next=12`),
+    footballGet(`/football/fixtures?league=${leagueMeta.leagueId}&season=${SEASON}&status=FT&last=12`),
     footballGet(`/football/fixtures?live=all`),
+    footballGet(`/football/teams?league=${leagueMeta.leagueId}&season=${SEASON}`),
   ]);
 
   const bundleRecord = isRecord(bundle) ? bundle : null;
@@ -390,19 +507,35 @@ export const getFootballDesk = cache(async (): Promise<IFootballDesk | null> => 
   const ordered = [
     ...matchesFrom(bundleRecord?.fixtures),
     ...matchesFrom(nextPayload),
-    ...matchesFrom(livePayload, LEAGUE_ID),
+    ...matchesFrom(livePayload, leagueMeta.leagueId),
     ...matchesFrom(finishedPayload),
   ];
   const byId = new Map<number, IFootballMatch>();
   for (const match of ordered) byId.set(match.id, match);
   const all = [...byId.values()];
-  const upcoming = all.filter((match) => match.status !== "finished").sort(byDate).slice(0, 10);
+  const open = all.filter((match) => match.status !== "finished");
+  const live = open.filter((match) => match.status === "live");
+  const scheduled = open.filter((match) => match.status !== "live").sort(byDate);
+  // Live first so slice(0,10) cannot drop in-progress fixtures behind a long NS queue.
+  const upcoming = [...live, ...scheduled].slice(0, 10);
   const completed = all
     .filter((match) => match.status === "finished")
     .sort((left, right) => right.date.localeCompare(left.date))
     .slice(0, 10);
   const standings = standingsFrom(bundleRecord?.standings);
-  const teams = standings.map((row) => ({ id: row.teamId, name: row.name, logo: row.logo }));
+  const teamsFromApi = listFrom(isRecord(teamsPayload) ? teamsPayload.response : null).flatMap((row) => {
+    if (!isRecord(row) || !isRecord(row.team)) return [];
+    const id = num(row.team.id);
+    const name = str(row.team.name);
+    if (id == null || !name) return [];
+    return [{ id, name, logo: str(row.team.logo) }];
+  });
+  const teams =
+    standings.length > 0
+      ? standings.map((row) => ({ id: row.teamId, name: row.name, logo: row.logo }))
+      : teamsFromApi.length > 0
+        ? teamsFromApi
+        : teamsFromMatches([...upcoming, ...completed]);
   const scorers = scorersFrom(bundleRecord?.topScorers)
     .sort((left, right) => right.goals - left.goals || right.assists - left.assists)
     .slice(0, 20);
@@ -411,12 +544,14 @@ export const getFootballDesk = cache(async (): Promise<IFootballDesk | null> => 
     .sort((left, right) => right.assists - left.assists || right.goals - left.goals)
     .slice(0, 20);
 
-  if (!upcoming.length && !completed.length && !standings.length && !scorers.length) return null;
+  if (!upcoming.length && !completed.length && !standings.length && !scorers.length && !teams.length) {
+    return null;
+  }
 
   return {
-    leagueName: (league && (str(league.namePt) || str(league.name))) || "Brasileirão Série A",
+    leagueName: (league && (str(league.namePt) || str(league.name))) || leagueMeta.fallbackName,
     season: (bundleRecord && num(bundleRecord.season)) || SEASON,
-    nextMatch: upcoming[0] ?? null,
+    nextMatch: live[0] ?? scheduled[0] ?? null,
     upcoming,
     completed,
     standings,
@@ -427,11 +562,23 @@ export const getFootballDesk = cache(async (): Promise<IFootballDesk | null> => 
 });
 
 export const getMatchPage = cache(async (id: number): Promise<IMatchPage | null> => {
-  const payload = await footballGet(`/football/fixtures?id=${id}`);
+  const [payload, eventsPayload, lineupsPayload, statsPayload] = await Promise.all([
+    footballGet(`/football/fixtures?id=${id}`),
+    footballGet(`/football/events?fixture=${id}`),
+    footballGet(`/football/lineups?fixture=${id}`),
+    footballGet(`/football/stats?fixture=${id}`),
+  ]);
   const raw = listFrom(isRecord(payload) ? payload.response : null)[0];
   const match = mapMatch(raw);
   if (!match || !isRecord(raw)) return null;
-  return { match, events: mapEvents(raw.events) };
+  const embedded = mapEvents(raw.events);
+  const events = embedded.length > 0 ? embedded : mapEvents(eventsPayload);
+  return {
+    match,
+    events,
+    lineups: mapLineups(lineupsPayload),
+    stats: mapStats(statsPayload),
+  };
 });
 
 const teamProfile = (payload: unknown, teamId: number): { name?: string; logo?: string; venue?: string; city?: string } => {
@@ -449,14 +596,18 @@ const teamProfile = (payload: unknown, teamId: number): { name?: string; logo?: 
 };
 
 export const getTeamPage = cache(async (teamId: number): Promise<ITeamPage | null> => {
-  const [teamPayload, nextPayload, lastPayload, desk] = await Promise.all([
+  const [teamPayload, nextPayload, lastPayload, deskA] = await Promise.all([
     footballGet(`/football/teams?id=${teamId}&season=${SEASON}`),
     footballGet(`/football/fixtures?team=${teamId}&season=${SEASON}&next=6`),
     footballGet(`/football/fixtures?team=${teamId}&season=${SEASON}&last=8`),
-    getFootballDesk(),
+    getFootballDesk("brasileirao"),
   ]);
   const profile = teamProfile(teamPayload, teamId);
-  const standing = desk?.standings.find((row) => row.teamId === teamId);
+  let standing = deskA?.standings.find((row) => row.teamId === teamId);
+  if (!standing) {
+    const deskB = await getFootballDesk("serie-b");
+    standing = deskB?.standings.find((row) => row.teamId === teamId);
+  }
   const name = profile.name || standing?.name;
   if (!name) return null;
   const upcoming = matchesFrom(nextPayload)

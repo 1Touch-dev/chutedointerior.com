@@ -234,7 +234,7 @@ async function getJson(url: string | null): Promise<unknown | null> {
       headers: { Accept: 'application/json' },
     };
     if (typeof window === 'undefined') {
-      init.next = { revalidate: 45 };
+      init.next = { revalidate: 30 };
     }
     const res = await fetch(url, init);
     if (!res.ok) return null;
@@ -254,11 +254,19 @@ function integrations() {
 export async function fetchLiveMatches(opts?: {
   restrictToPack?: boolean;
 }): Promise<MatchCardModel[]> {
-  const url = footballUrl(integrations().FOOTBALL_LIVE);
-  const json = await getJson(url);
-  const mapped = unwrapRows(json)
+  // `/football/live` often returns empty; desk Postman path uses `fixtures?live=all`.
+  const primary = footballUrl(integrations().FOOTBALL_LIVE);
+  const fallback = footballUrl('/football/fixtures', { live: 'all' });
+  let json = await getJson(primary);
+  let mapped = unwrapRows(json)
     .map(mapFixture)
     .filter((m): m is MatchCardModel => !!m);
+  if (mapped.length === 0 && fallback && fallback !== primary) {
+    json = await getJson(fallback);
+    mapped = unwrapRows(json)
+      .map(mapFixture)
+      .filter((m): m is MatchCardModel => !!m);
+  }
   if (opts?.restrictToPack === false) return mapped;
   const ids = new Set(competitionLeagueIds());
   return mapped.filter((m) => m.leagueId != null && ids.has(m.leagueId));

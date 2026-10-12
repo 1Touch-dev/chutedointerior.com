@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
 import SectionArticles from '@/components/cms/SectionArticles';
+import { pageMetadata } from '@/lib/seo';
 import { siteConfig } from '@/lib/site-config';
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Notícias',
   description: `Notícias de ${siteConfig.siteName}`,
-};
+  path: '/ultimas',
+});
 
 export default function UltimasPage() {
   return (

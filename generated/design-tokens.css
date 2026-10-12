@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap');
-
 /**
  * Design Tokens - Auto-generated
  * Design: Chute do Interior - Conexão Local Design System
  * Archetype: brief-composed
  * Version: 1.0.0
  * Generated: 2026-09-29T09:06:05.589Z
+ *
+ * Fonts: loaded via next/font in app/layout.tsx (CWV — no render-blocking Google CSS).
  */
 
 :root {
@@ -29,10 +29,10 @@
   --radius-1: 8px;
   --radius-2: 12px;
   --radius-3: 16px;
-  --font-display: Outfit;
-  --font-heading: Outfit;
-  --font-body: 'Open Sans';
-  --font-article: Lora;
+  --font-display: var(--font-outfit), Outfit, system-ui, sans-serif;
+  --font-heading: var(--font-outfit), Outfit, system-ui, sans-serif;
+  --font-body: var(--font-open-sans), 'Open Sans', system-ui, sans-serif;
+  --font-article: var(--font-lora), Lora, Georgia, serif;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-bold: 700;
