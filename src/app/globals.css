@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+.article-affiliate-layout {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .article-affiliate-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 160px;
+    align-items: stretch;
+    gap: 24px;
+  }
+}
+
+/* A short viewport must be able to scroll through the entire creative. */
+@media (min-width: 1024px) and (max-height: 620px) {
+  .article-affiliate-rail > .sticky {
+    position: static;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

@@ -1,3 +1,4 @@
+import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import ArticleCard from '@/components/cards/ArticleCard';
 import { getArticlesByEndpoint } from '@/lib/cms-client';
 
@@ -22,13 +23,13 @@ export default async function SectionArticles({
       {articles.length === 0 ? (
         <p className="rounded-xl border border-black/10 bg-white px-4 py-8 text-sm text-muted">{EMPTY_NOTES}</p>
       ) : (
-        <div className="divide-y divide-black/10 rounded border border-black/10 bg-white">
+        <AffiliateFeed className="space-y-2">
           {articles.map((article) => (
             <div key={article.id} className="min-w-0 px-3 sm:px-4">
               <ArticleCard article={article} variant="horizontal" />
             </div>
           ))}
-        </div>
+        </AffiliateFeed>
       )}
     </section>
   );

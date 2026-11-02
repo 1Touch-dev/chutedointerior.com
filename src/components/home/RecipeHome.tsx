@@ -1,5 +1,7 @@
 'use client';
 
+import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
+import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import Link from 'next/link';
 import type React from 'react';
 import ArticleCard from '@/components/cards/ArticleCard';
@@ -337,11 +339,11 @@ function HorizontalStream({ articles }: { articles: Article[] }) {
 
 function CompactGrid({ articles }: { articles: Article[] }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <AffiliateFeed cardSlot className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {articles.map((article) => (
         <ArticleCard key={article.id} article={article} variant="compact" />
       ))}
-    </div>
+    </AffiliateFeed>
   );
 }
 
@@ -600,6 +602,18 @@ export default function RecipeHome({ articles, mostRead }: RecipeHomeProps) {
 
   const layout = recipe.homepageLayout || siteConfig.layouts.homepage;
   const cursor = { n: 0 };
+  let articlesSinceBanner = 0;
+  let bannerCount = 0;
+  const bannerBudget = Math.floor(Math.max(0, articles.length - 1) / 6);
+  function renderSlot(slot: RecipeSlot) {
+    const before = cursor.n;
+    const node = renderBlock(slot, articles, mostRead, cursor);
+    articlesSinceBanner += cursor.n - before;
+    const showBanner = articlesSinceBanner >= 6 && bannerCount < bannerBudget;
+    const preset = bannerCount % 2 === 0 ? 'landscape' : 'strip';
+    if (showBanner) { articlesSinceBanner = 0; bannerCount += 1; }
+    return <>{node}{showBanner && <AffiliateBanner preset={preset} className="mt-6" />}</>;
+  }
   const sidebarKinds = new Set(['most-read', 'newsletter']);
   // Magazine = single column essay shell (never main-sidebar card grid)
   const useMagazineShell = layout === 'premium-magazine' || recipe.grid === 'single';
@@ -613,7 +627,7 @@ export default function RecipeHome({ articles, mostRead }: RecipeHomeProps) {
       <div className="mx-auto max-w-3xl space-y-10 px-4 py-12 md:py-16">
         {recipe.slots.map((slot) => (
           <MotionSection key={slot.id}>
-            {renderBlock(slot, articles, mostRead, cursor)}
+            {renderSlot(slot)}
           </MotionSection>
         ))}
       </div>
@@ -634,7 +648,7 @@ export default function RecipeHome({ articles, mostRead }: RecipeHomeProps) {
                   className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-card"
                 >
                   <div className="p-4">
-                    {renderBlock(slot, articles, mostRead, cursor)}
+                    {renderSlot(slot)}
                   </div>
                 </MotionSection>
               ))}
@@ -646,7 +660,7 @@ export default function RecipeHome({ articles, mostRead }: RecipeHomeProps) {
                   className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-card"
                 >
                   <div className="p-4">
-                    {renderBlock(slot, articles, mostRead, cursor)}
+                    {renderSlot(slot)}
                   </div>
                 </MotionSection>
               ))}
@@ -666,14 +680,14 @@ export default function RecipeHome({ articles, mostRead }: RecipeHomeProps) {
           <div className="space-y-4">
             {main.map((slot) => (
               <MotionSection key={slot.id}>
-                {renderBlock(slot, articles, mostRead, cursor)}
+                {renderSlot(slot)}
               </MotionSection>
             ))}
           </div>
           <aside className="space-y-4">
             {side.map((slot) => (
               <MotionSection key={slot.id}>
-                {renderBlock(slot, articles, mostRead, cursor)}
+                {renderSlot(slot)}
               </MotionSection>
             ))}
           </aside>
@@ -686,7 +700,7 @@ export default function RecipeHome({ articles, mostRead }: RecipeHomeProps) {
     <div className={shellClass(recipe)}>
       {recipe.slots.map((slot) => (
         <MotionSection key={slot.id}>
-          {renderBlock(slot, articles, mostRead, cursor)}
+          {renderSlot(slot)}
         </MotionSection>
       ))}
     </div>

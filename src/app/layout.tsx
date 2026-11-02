@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Lora, Open_Sans, Outfit } from 'next/font/google';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import ChromeHost from '@/components/chrome/ChromeHost';
+import AffiliatePlacement from '@/components/affiliate/AffiliatePlacement';
 import Footer from '@/components/chrome/Footer';
 import PartnerBanners from '@/components/cms/PartnerBanners';
 import { getAlerts, getBreakingHeadlines } from '@/lib/cms-client';
@@ -109,6 +110,7 @@ export default async function RootLayout({
         </a>
         <ChromeHost headlines={headlines} alerts={alerts} />
         <PartnerBanners position="header" />
+        <AffiliatePlacement skipHome />
         <main id="conteudo-principal" className="flex-1 min-w-0">
           {children}
         </main>

@@ -1,3 +1,4 @@
+import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import MatchCard from '@/components/football/MatchCard';
@@ -86,13 +87,13 @@ export default async function AoVivoPage() {
             Ver todas
           </Link>
         </div>
-        <div className="divide-y divide-black/10 rounded border border-black/10 bg-white">
+        <AffiliateFeed className="space-y-2">
           {articles.map((article) => (
             <div key={article.id} className="px-3">
               <ArticleCard article={article} variant="horizontal" />
             </div>
           ))}
-        </div>
+        </AffiliateFeed>
       </section>
     </div>
   );

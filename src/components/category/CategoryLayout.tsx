@@ -1,3 +1,5 @@
+import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
+import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import Link from 'next/link';
 import ArticleCard from '@/components/cards/ArticleCard';
 import type { Article, Category } from '@/lib/cms-client';
@@ -74,7 +76,7 @@ function RankedEditorialStream({ category, articles }: CategoryLayoutProps) {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {lead && <ArticleCard article={lead} variant="lead" />}
           <div className="space-y-1">
-            {rest.slice(0, 8).map((article, i) => (
+            {rest.slice(0, 5).map((article, i) => (
               <ArticleCard
                 key={article.id}
                 article={article}
@@ -83,12 +85,13 @@ function RankedEditorialStream({ category, articles }: CategoryLayoutProps) {
               />
             ))}
           </div>
-          {rest.length > 8 && (
-            <div className="lg:col-span-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {rest.slice(8).map((article) => (
+          {rest.length > 5 && <div className="lg:col-span-2"><AffiliateBanner preset="landscape" /></div>}
+          {rest.length > 5 && (
+            <AffiliateFeed className="lg:col-span-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" cardSlot offset={6}>
+              {rest.slice(5).map((article) => (
                 <ArticleCard key={article.id} article={article} variant="compact" />
               ))}
-            </div>
+            </AffiliateFeed>
           )}
         </div>
       )}
@@ -104,7 +107,7 @@ function SectionLedGrid({ category, articles }: CategoryLayoutProps) {
       {articles.length === 0 ? (
         <p className="text-muted">Nenhuma notícia nesta categoria.</p>
       ) : (
-        <div className="grid gap-8 sm:grid-cols-2">
+        <AffiliateFeed className="grid gap-8 sm:grid-cols-2" cardSlot>
           {articles.map((article, i) => (
             <ArticleCard
               key={article.id}
@@ -113,7 +116,7 @@ function SectionLedGrid({ category, articles }: CategoryLayoutProps) {
               className={i === 0 ? 'sm:col-span-2' : undefined}
             />
           ))}
-        </div>
+        </AffiliateFeed>
       )}
     </div>
   );
@@ -130,7 +133,7 @@ function DenseFeedList({ category, articles }: CategoryLayoutProps) {
         <p className="text-muted">Nenhuma notícia nesta categoria.</p>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-0 divide-y divide-black/10 rounded-xl border border-black/10 bg-white">
+          <AffiliateFeed className="space-y-2">
             {lead && (
               <div className="p-4">
                 <ArticleCard article={lead} variant="horizontal" />
@@ -141,7 +144,7 @@ function DenseFeedList({ category, articles }: CategoryLayoutProps) {
                 <ArticleCard article={article} variant="rail" rank={i + 2} />
               </div>
             ))}
-          </div>
+          </AffiliateFeed>
           <aside className="space-y-4">
             <div className="rounded-xl bg-surface p-4">
               <h2 className="font-display text-sm uppercase text-secondary">Mais lidas</h2>
@@ -173,7 +176,7 @@ function MosaicTiles({ category, articles }: CategoryLayoutProps) {
       {articles.length === 0 ? (
         <p className="text-muted">Nenhuma notícia nesta categoria.</p>
       ) : (
-        <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+        <AffiliateFeed className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" cardSlot>
           {articles.map((article, i) => (
             <div key={article.id} className="mb-4 break-inside-avoid motion-enter">
               <ArticleCard
@@ -182,7 +185,7 @@ function MosaicTiles({ category, articles }: CategoryLayoutProps) {
               />
             </div>
           ))}
-        </div>
+        </AffiliateFeed>
       )}
     </div>
   );

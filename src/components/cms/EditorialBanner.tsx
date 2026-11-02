@@ -14,7 +14,7 @@ export default async function EditorialBanner() {
   const local = href ? sameSitePath(href) : null;
 
   return (
-    <section aria-label="Destaque" className="border-b border-black/10 bg-surface">
+    <section aria-label="Destaque">
       <div className="mx-auto min-w-0 max-w-7xl px-4 py-4 sm:py-6">
         {banner.type === 'html' && banner.htmlContent?.trim() ? (
           <HtmlBannerFrame

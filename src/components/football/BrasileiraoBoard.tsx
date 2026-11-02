@@ -1,3 +1,4 @@
+import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
 import Link from 'next/link';
 import { FeaturedMatch, ScorerTable, StandingsBoard, TeamGrid } from '@/components/football/desk-view';
 import MatchTabs from '@/components/football/MatchTabs';
@@ -44,6 +45,7 @@ export default async function BrasileiraoBoard({
       {desk.standings.length > 0 ? (
         <StandingsBoard rows={desk.standings} limit={compact ? 8 : undefined} />
       ) : null}
+      {!compact && desk.standings.length >= 6 && desk.teams.length > 0 && <AffiliateBanner preset="landscape" />}
       {compact ? null : <TeamGrid teams={desk.teams} />}
       <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-2">
         <ScorerTable title="Artilheiros" rows={desk.scorers} metric="goals" limit={compact ? 5 : undefined} />

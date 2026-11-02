@@ -1,3 +1,4 @@
+import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
 import Link from 'next/link';
 import {
   Crest,
@@ -139,6 +140,7 @@ export default async function FootballHome() {
           </section>
         </div>
 
+        {results.length + marked.length >= 6 && desk.standings.length > 0 && <AffiliateBanner preset="landscape" />}
         {desk.standings.length > 0 ? <StandingsBoard rows={desk.standings} limit={10} /> : null}
       </div>
     </section>

@@ -1,4 +1,5 @@
 import EditorialBanner from '@/components/cms/EditorialBanner';
+import AffiliatePlacement from '@/components/affiliate/AffiliatePlacement';
 import { EMPTY_NOTES } from '@/components/cms/SectionArticles';
 import FootballHome from '@/components/football/FootballHome';
 import RecipeHome from '@/components/home/RecipeHome';
@@ -17,6 +18,7 @@ export default async function HomeLayout() {
   return (
     <>
       <EditorialBanner />
+      <AffiliatePlacement />
       <FootballHome />
       {articles.length === 0 ? (
         <p className="mx-auto max-w-7xl px-4 py-10 text-sm text-muted">{EMPTY_NOTES}</p>

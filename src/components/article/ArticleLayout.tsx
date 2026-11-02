@@ -1,3 +1,4 @@
+import ArticleAffiliateLayout from '@/components/affiliate/ArticleAffiliateLayout';
 import Link from 'next/link';
 import ArticleFaq from '@/components/article/ArticleFaq';
 import ArticleSentiment from '@/components/article/ArticleSentiment';
@@ -21,7 +22,14 @@ const articleBodyClass =
   '[&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-tight [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-bold [&_h4]:mt-5 [&_h4]:text-lg [&_h4]:font-semibold [&_p]:mt-4 [&_a]:underline [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1 [&_strong]:font-semibold';
 
 function ArticleHtml({ html, className }: { html: string; className: string }) {
-  return <div className={`${className} ${articleBodyClass}`} dangerouslySetInnerHTML={{ __html: html }} />;
+  if (html.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length < 180) {
+    return <div className={`${className} ${articleBodyClass}`} dangerouslySetInnerHTML={{ __html: html }} />;
+  }
+  return (
+    <ArticleAffiliateLayout>
+      <div className={`${className} ${articleBodyClass}`} dangerouslySetInnerHTML={{ __html: html }} />
+    </ArticleAffiliateLayout>
+  );
 }
 
 function KeyPointsBlock({

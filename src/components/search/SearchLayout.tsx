@@ -1,3 +1,4 @@
+import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import Link from 'next/link';
 import ArticleCard from '@/components/cards/ArticleCard';
 import type { Article } from '@/lib/cms-client';
@@ -44,7 +45,7 @@ function CompactResults({ query, results }: SearchLayoutProps) {
       {query && results.length === 0 && (
         <p className="text-muted">Nenhuma notícia encontrada. Tente outros termos.</p>
       )}
-      <div className="divide-y divide-black/10 rounded border border-black/10 bg-white">
+      <AffiliateFeed className="space-y-2">
         {results.map((article) => (
           <div key={article.id} className="px-4">
             <ArticleCard
@@ -53,7 +54,7 @@ function CompactResults({ query, results }: SearchLayoutProps) {
             />
           </div>
         ))}
-      </div>
+      </AffiliateFeed>
     </div>
   );
 }
@@ -85,11 +86,11 @@ function EditorialResults({ query, results }: SearchLayoutProps) {
           <ArticleCard article={lead} variant="lead" />
         </div>
       )}
-      <div className="grid gap-6 sm:grid-cols-2">
+      <AffiliateFeed className="grid gap-6 sm:grid-cols-2" cardSlot offset={1}>
         {rest.map((article) => (
           <ArticleCard key={article.id} article={article} variant="compact" />
         ))}
-      </div>
+      </AffiliateFeed>
     </div>
   );
 }
@@ -123,11 +124,11 @@ function ModularFilterResults({ query, results }: SearchLayoutProps) {
         <p className="text-muted">Sem resultados. Tente outra palavra-chave.</p>
       )}
       <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-        <div className="space-y-2 rounded-xl border border-black/10 bg-white p-2">
+        <AffiliateFeed className="space-y-2">
           {results.map((article, i) => (
             <ArticleCard key={article.id} article={article} variant="rail" rank={i + 1} />
           ))}
-        </div>
+        </AffiliateFeed>
         <aside className="rounded-xl bg-surface p-4">
           <h2 className="font-display text-sm uppercase text-secondary">Seções</h2>
           <ul className="mt-3 space-y-2 text-sm">
