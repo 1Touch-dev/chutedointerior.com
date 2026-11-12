@@ -9,11 +9,11 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
-    theme_color: '#0B3D2E',
+    theme_color: '#E8B008',
     lang: 'pt-BR',
     icons: [
-      { src: '/icon', sizes: '32x32', type: 'image/png' },
-      { src: '/icon', sizes: '192x192', type: 'image/png' },
+      { src: '/logo-mark.jpg', sizes: '512x512', type: 'image/jpeg', purpose: 'any' },
+      { src: '/icon.jpg', sizes: '32x32', type: 'image/jpeg' },
     ],
   };
 }

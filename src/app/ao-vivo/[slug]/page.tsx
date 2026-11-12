@@ -27,7 +27,7 @@ export default async function AoVivoPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <p className="inline-flex items-center gap-2 rounded bg-primary px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+      <p className="inline-flex items-center gap-2 rounded bg-primary px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-hidden />
         Ao vivo
       </p>

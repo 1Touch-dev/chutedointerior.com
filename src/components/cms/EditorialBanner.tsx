@@ -1,48 +1,46 @@
-/* eslint-disable @next/next/no-img-element */
-import HtmlBannerFrame from '@/components/cms/HtmlBannerFrame';
-import { getEditorialBanners } from '@/lib/banners';
-import { BANNER_FRAME_CLASS, isLikelyImageUrl, sameSitePath } from '@/lib/banner-html';
+import EditorialBannerCarousel, {
+  type EditorialSlide,
+} from '@/components/cms/EditorialBannerCarousel';
+import { getEditorialBanners, type IEditorialBanner } from '@/lib/banners';
+import { isLikelyImageUrl, sameSitePath } from '@/lib/banner-html';
 
-/** Single homepage destaque — first usable banner only. */
-export default async function EditorialBanner() {
-  const banners = await getEditorialBanners();
-  const banner = banners[0];
-  if (!banner) return null;
+function toSlide(banner: IEditorialBanner, index: number): EditorialSlide | null {
+  const title = banner.title || 'Destaque';
+  const id = banner._id || `${title}-${index}`;
+
+  if (banner.type === 'html' && banner.htmlContent?.trim()) {
+    return { id, kind: 'html', title, html: banner.htmlContent };
+  }
 
   const image = banner.imageUrl || (isLikelyImageUrl(banner.url) ? banner.url : undefined);
-  const href = banner.ctaUrl || (!isLikelyImageUrl(banner.url) ? banner.url : undefined);
-  const local = href ? sameSitePath(href) : null;
+  if (!image) return null;
+
+  const rawHref = banner.ctaUrl || (!isLikelyImageUrl(banner.url) ? banner.url : undefined);
+  const local = rawHref ? sameSitePath(rawHref) : null;
+
+  return {
+    id,
+    kind: 'image',
+    title,
+    image,
+    href: local || rawHref || undefined,
+    external: Boolean(rawHref && !local),
+  };
+}
+
+/** Homepage destaque carousel — CMS public banners with auto-rotate + controls. */
+export default async function EditorialBanner() {
+  const banners = await getEditorialBanners();
+  const slides = banners
+    .map((banner, index) => toSlide(banner, index))
+    .filter((slide): slide is EditorialSlide => Boolean(slide));
+
+  if (!slides.length) return null;
 
   return (
     <section aria-label="Destaque">
       <div className="mx-auto min-w-0 max-w-7xl px-4 py-4 sm:py-6">
-        {banner.type === 'html' && banner.htmlContent?.trim() ? (
-          <HtmlBannerFrame
-            html={banner.htmlContent}
-            title={banner.title || 'Destaque'}
-            className="overflow-hidden rounded-xl"
-          />
-        ) : image ? (
-          href ? (
-            <a
-              href={local || href}
-              className="block overflow-hidden rounded-xl"
-              {...(local ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-            >
-              <img
-                src={image}
-                alt={banner.title || 'Destaque'}
-                className={`${BANNER_FRAME_CLASS} object-cover`}
-              />
-            </a>
-          ) : (
-            <img
-              src={image}
-              alt={banner.title || 'Destaque'}
-              className={`${BANNER_FRAME_CLASS} rounded-xl object-cover`}
-            />
-          )
-        ) : null}
+        <EditorialBannerCarousel slides={slides} />
       </div>
     </section>
   );

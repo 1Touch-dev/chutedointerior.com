@@ -1,7 +1,7 @@
 import '../../generated/design-tokens.css';
 import './globals.css';
 import type { Metadata } from 'next';
-import { Lora, Open_Sans, Outfit } from 'next/font/google';
+import { Barlow_Condensed, Plus_Jakarta_Sans } from 'next/font/google';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import ChromeHost from '@/components/chrome/ChromeHost';
 import AffiliatePlacement from '@/components/affiliate/AffiliatePlacement';
@@ -13,21 +13,16 @@ import { organizationJsonLd } from '@/lib/seo';
 import { siteConfig } from '@/lib/site-config';
 import { absoluteUrl } from '@/lib/site-url';
 
-const outfit = Outfit({
+const barlowCondensed = Barlow_Condensed({
   subsets: ['latin'],
-  variable: '--font-outfit',
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-barlow-condensed',
   display: 'swap',
 });
 
-const openSans = Open_Sans({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-open-sans',
-  display: 'swap',
-});
-
-const lora = Lora({
-  subsets: ['latin'],
-  variable: '--font-lora',
+  variable: '--font-plus-jakarta',
   display: 'swap',
 });
 
@@ -42,8 +37,12 @@ export const metadata: Metadata = {
     : undefined,
   applicationName: siteConfig.siteName,
   icons: {
-    icon: [{ url: '/icon', type: 'image/png' }],
-    shortcut: ['/favicon.ico'],
+    icon: [
+      { url: '/logo-mark.jpg', type: 'image/jpeg', sizes: 'any' },
+      { url: '/icon.jpg', type: 'image/jpeg', sizes: '32x32' },
+    ],
+    apple: [{ url: '/apple-icon.jpg', type: 'image/jpeg' }],
+    shortcut: ['/logo-mark.jpg'],
   },
   alternates: {
     types: {
@@ -88,7 +87,7 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${outfit.variable} ${openSans.variable} ${lora.variable}`}
+      className={`${barlowCondensed.variable} ${plusJakarta.variable}`}
     >
       <body
         data-layout={siteConfig.layouts.homepage}

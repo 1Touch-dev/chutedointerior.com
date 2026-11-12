@@ -13,7 +13,7 @@ interface ChromeHostProps {
 
 /**
  * Owns chrome composition order from siteConfig.chrome (Phase 1).
- * Families render structure; this host places breaking / nav rails.
+ * Sticky shell keeps header + category rail fixed while content scrolls.
  */
 export default function ChromeHost({ headlines, alerts }: ChromeHostProps) {
   const chrome = resolveChrome().header;
@@ -23,18 +23,29 @@ export default function ChromeHost({ headlines, alerts }: ChromeHostProps) {
     chrome.breakingPosition !== 'inside-header';
   const showNav =
     hasCapability('category-nav') && chrome.navPosition === 'below-main';
+  const stickyShell = chrome.stickyMode !== 'none';
 
   const breaking =
     showBreaking && headlines.length ? (
       <BreakingNews headlines={headlines} />
     ) : null;
 
-  return (
+  const mainChrome = (
     <>
-      {chrome.breakingPosition === 'top' ? breaking : null}
       <Header />
       {showNav ? <CategoryNav /> : null}
       {chrome.breakingPosition === 'below-nav' ? breaking : null}
+    </>
+  );
+
+  return (
+    <>
+      {chrome.breakingPosition === 'top' ? breaking : null}
+      {stickyShell ? (
+        <div className="sticky top-0 z-50">{mainChrome}</div>
+      ) : (
+        mainChrome
+      )}
       {hasCapability('alerts-rail') ? <AlertsRail alerts={alerts} /> : null}
     </>
   );

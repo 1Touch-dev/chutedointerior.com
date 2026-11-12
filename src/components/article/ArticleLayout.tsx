@@ -5,6 +5,7 @@ import ArticleSentiment from '@/components/article/ArticleSentiment';
 import PartnerBanners from '@/components/cms/PartnerBanners';
 import ArticleCard from '@/components/cards/ArticleCard';
 import ArticleKeyPoints from '@/components/article/ArticleKeyPoints';
+import BrandFallback from '@/components/ui/BrandFallback';
 import CmsImage from '@/components/ui/CmsImage';
 import type { Article } from '@/lib/cms-client';
 import { hasCapability } from '@/lib/capabilities';
@@ -87,11 +88,11 @@ function Breadcrumb({ article }: { article: Article }) {
 function MetaBadges({ article }: { article: Article }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+      <span className="rounded-sm bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-secondary">
         {article.category}
       </span>
       {article.isVideo && (
-        <span className="rounded bg-accent px-2 py-0.5 text-[10px] font-bold uppercase text-secondary">
+        <span className="rounded-sm border border-white/35 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
           Vídeo
         </span>
       )}
@@ -150,46 +151,47 @@ function RelatedBlock({
   );
 }
 
-/** Broadcast: full-bleed hero media first, then urgent story desk. */
+/** Broadcast desk: hero + body share the same reading width. */
 function MediaRichStory({ article, related }: ArticleLayoutProps) {
   return (
-    <article className="bg-[#0b0f14] text-white">
-      {article.imageUrl && (
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary md:aspect-[2.35/1]">
-          <CmsImage
-            src={article.imageUrl}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f14] via-[#0b0f14]/35 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-4xl px-4 pb-8 md:pb-12">
-            <MetaBadges article={article} />
-            <h1 className="mt-3 font-display text-3xl uppercase leading-[0.95] tracking-wide text-white md:text-5xl lg:text-6xl">
-              {article.title}
-            </h1>
-          </div>
-        </div>
-      )}
+    <article className="bg-secondary text-white">
       <div className="mx-auto max-w-3xl px-4 py-8 md:py-10">
-        {!article.imageUrl && (
+        <div className="mb-6 [&_a]:text-white/70 [&_a:hover]:text-accent [&_.text-muted]:text-white/55">
+          <Breadcrumb article={article} />
+        </div>
+
+        {article.imageUrl ? (
+          <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden rounded-sm bg-primary">
+            <CmsImage
+              src={article.imageUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/45 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+              <MetaBadges article={article} />
+              <h1 className="mt-3 font-display text-3xl uppercase leading-[0.95] tracking-[0.04em] text-white md:text-5xl">
+                {article.title}
+              </h1>
+            </div>
+          </div>
+        ) : (
           <header className="mb-8">
-            <Breadcrumb article={article} />
+            <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden rounded-sm">
+              <BrandFallback className="absolute inset-0" muted />
+            </div>
             <MetaBadges article={article} />
-            <h1 className="mt-3 font-display text-3xl uppercase leading-none tracking-wide text-white md:text-5xl">
+            <h1 className="mt-3 font-display text-3xl uppercase leading-none tracking-[0.04em] text-white md:text-5xl">
               {article.title}
             </h1>
           </header>
         )}
-        {article.imageUrl && (
-          <div className="mb-6 [&_a]:text-white/70 [&_a:hover]:text-accent [&_.text-muted]:text-white/55">
-            <Breadcrumb article={article} />
-          </div>
-        )}
+
         {article.excerpt && (
-          <p className="border-l-4 border-primary pl-4 text-lg font-medium leading-relaxed text-white/85">
+          <p className="border-l-4 border-accent pl-4 text-lg font-medium leading-relaxed text-white/85">
             {article.excerpt}
           </p>
         )}
@@ -199,7 +201,7 @@ function MediaRichStory({ article, related }: ArticleLayoutProps) {
         <KeyPointsBlock article={article} inverted />
         <ArticleVideo article={article} />
         <ArticleHtml
-          className="prose prose-invert mt-8 max-w-none font-body text-base leading-[1.7] prose-headings:font-display prose-headings:uppercase prose-a:text-accent"
+          className="prose prose-invert mt-8 max-w-none font-body text-base leading-[1.7] prose-headings:font-display prose-headings:uppercase prose-a:text-accent [&_img]:mx-auto [&_img]:h-auto [&_img]:max-w-full [&_figure]:max-w-full"
           html={article.content}
         />
         <FaqBlock article={article} inverted />

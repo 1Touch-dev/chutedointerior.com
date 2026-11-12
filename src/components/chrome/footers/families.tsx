@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BrandLogo from '@/components/chrome/BrandLogo';
 import FooterNewsletterForm from '@/components/chrome/footers/FooterNewsletterForm';
 import { siteConfig } from '@/lib/site-config';
 import { resolveChrome } from '@/lib/chrome';
@@ -10,7 +11,8 @@ const year = () => new Date().getFullYear();
 export function SportsClubhouseFooter() {
   const cfg = resolveChrome().footer;
   return (
-    <footer className="mt-auto bg-[#0B3D2E] text-white">
+    <footer className="mt-auto bg-secondary text-white">
+      <div className="h-1 w-full bg-gradient-to-r from-primary via-accent to-primary" aria-hidden />
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div
           className={cn(
@@ -21,19 +23,27 @@ export function SportsClubhouseFooter() {
           )}
         >
           <div>
-            <p className="font-display text-4xl uppercase tracking-wide">
-              {siteConfig.siteName}
-            </p>
-            <p className="mt-2 max-w-md text-sm text-white/70">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <BrandLogo size={56} className="ring-1 ring-white/15" />
+              <p className="font-display text-3xl uppercase tracking-[0.06em] md:text-4xl">
+                {siteConfig.siteName}
+              </p>
+            </Link>
+            <p className="mt-3 max-w-md text-sm text-white/70">
               {siteConfig.tagline || siteConfig.description}
             </p>
             {cfg.showAppPromotion ? (
               <Link
                 href="/ao-vivo"
-                className="mt-4 inline-flex min-h-11 items-center rounded bg-[#E11D48] px-4 text-xs font-bold uppercase"
+                className="mt-4 inline-flex min-h-11 items-center rounded-sm bg-[var(--color-live)] px-4 text-xs font-bold uppercase tracking-wider"
               >
                 Ver placar ao vivo
               </Link>
+            ) : null}
+            {cfg.showNewsletter ? (
+              <div className="mt-6 max-w-sm">
+                <FooterNewsletterForm />
+              </div>
             ) : null}
           </div>
           <div>

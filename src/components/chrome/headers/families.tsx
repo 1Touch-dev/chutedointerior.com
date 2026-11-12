@@ -1,20 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import BrandLogo from '@/components/chrome/BrandLogo';
+import GlobalSearch from '@/components/search/GlobalSearch';
 import { siteConfig } from '@/lib/site-config';
 import { resolveChrome } from '@/lib/chrome';
-import { capabilityNavLinks } from '@/lib/capabilities';
+import { capabilityNavLinks, hasCapability } from '@/lib/capabilities';
 import { DURATION, transition } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import { getCompetitions, isSportsSite, navHrefForSlug } from '@/lib/competitions';
+import { isSportsSite, navHrefForSlug } from '@/lib/competitions';
 
 function LiveScoreChip() {
   return (
     <Link
       href="/ao-vivo"
-      className="inline-flex min-h-11 items-center gap-2 rounded bg-[#E11D48] px-3 text-[10px] font-bold uppercase tracking-wider text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-[var(--color-live)] px-3 text-[10px] font-bold uppercase tracking-wider text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white motion-reduce:animate-none" />
       Ao vivo
@@ -51,66 +53,44 @@ function RegionSelector() {
 export function BroadcastScoreboardHeader() {
   const chrome = resolveChrome().header;
   const [menuOpen, setMenuOpen] = useState(false);
-  const [compressed, setCompressed] = useState(false);
   const reduced = useReducedMotion();
   const menuId = useId();
   const tagline = String(siteConfig.tagline || '').trim();
-  const extra = capabilityNavLinks();
-
-  useEffect(() => {
-    if (chrome.stickyMode === 'none') return;
-    const onScroll = () => setCompressed(window.scrollY > 20);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [chrome.stickyMode]);
+  const showSearch =
+    hasCapability('search') && chrome.searchMode !== 'hidden';
+  const showLive = chrome.signatureModule === 'live-score-indicator';
 
   return (
-    <header
-      className={cn(
-        'z-50 border-b border-primary/80 bg-[#0B3D2E] text-white',
-        chrome.stickyMode !== 'none' && 'sticky top-0'
-      )}
-    >
-      <div
-        className={cn(
-          'mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 transition-[padding] duration-200',
-          compressed && chrome.stickyMode === 'compact' ? 'py-1.5' : 'py-2.5'
-        )}
-      >
-        <Link href="/" className="min-w-0">
-          <p
-            className={cn(
-              'truncate font-display uppercase tracking-[0.06em]',
-              chrome.logoScale === 'compact' ? 'text-xl' : 'text-2xl md:text-3xl',
-              compressed && 'md:text-2xl'
-            )}
-          >
-            {siteConfig.siteName}
-          </p>
-          {tagline && !compressed ? (
-            <p className="truncate text-[10px] uppercase tracking-[0.2em] text-white/55">
-              {tagline}
+    <header className="border-b border-accent/40 bg-secondary text-white">
+      <div className="h-0.5 w-full bg-gradient-to-r from-primary via-accent to-primary" aria-hidden />
+      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4">
+        <Link href="/" className="group flex min-w-0 flex-1 items-center gap-2 sm:flex-none sm:gap-3">
+          <BrandLogo size={36} priority className="shrink-0 ring-1 ring-white/15" />
+          <span className="min-w-0">
+            <p className="truncate font-display text-sm uppercase tracking-[0.06em] transition-colors group-hover:text-accent sm:text-xl md:text-2xl">
+              {siteConfig.siteName}
             </p>
-          ) : null}
+            {tagline ? (
+              <p className="hidden truncate text-[10px] uppercase tracking-[0.22em] text-white/50 md:block">
+                {tagline}
+              </p>
+            ) : null}
+          </span>
         </Link>
-        <div className="hidden items-center gap-4 md:flex">
-          {extra.slice(0, 4).map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="min-h-11 inline-flex items-center text-xs font-semibold uppercase tracking-wide hover:text-accent"
-            >
-              {l.label}
-            </Link>
-          ))}
-          {chrome.signatureModule === 'live-score-indicator' ? (
-            <LiveScoreChip />
-          ) : null}
+
+        <div className="flex shrink-0 items-center gap-2 md:ml-auto md:min-w-0 md:max-w-sm md:flex-1 lg:max-w-md">
+          {showSearch ? <GlobalSearch tone="dark" className="w-full" /> : null}
         </div>
+
+        {showLive ? (
+          <span className="hidden shrink-0 lg:inline-flex">
+            <LiveScoreChip />
+          </span>
+        ) : null}
+
         <button
           type="button"
-          className="min-h-11 bg-[#E11D48] px-4 text-xs font-bold uppercase md:hidden"
+          className="inline-flex h-10 shrink-0 items-center rounded-md bg-[var(--color-live)] px-3 text-[11px] font-bold uppercase md:hidden"
           aria-expanded={menuOpen}
           aria-controls={menuId}
           onClick={() => setMenuOpen((v) => !v)}
@@ -128,51 +108,36 @@ export function BroadcastScoreboardHeader() {
             transition={transition(DURATION.base, !!reduced)}
             className="overflow-hidden border-t border-white/15 px-4 py-3 md:hidden"
           >
-            <ul className="space-y-1 text-sm">
-              {isSportsSite() ? (
-                <>
-                  <li>
-                    <Link href="/ao-vivo" className="block py-2.5" onClick={() => setMenuOpen(false)}>
-                      Ao vivo
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/futebol" className="block py-2.5" onClick={() => setMenuOpen(false)}>
-                      Partidas
-                    </Link>
-                  </li>
-                  {getCompetitions().map((c) => (
-                    <li key={c.slug}>
-                      <Link
-                        href={`/liga/${c.slug}`}
-                        className="block py-2.5"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        {c.name}
-                      </Link>
-                    </li>
-                  ))}
-                </>
-              ) : (
-                extra.map((l) => (
-                  <li key={l.href}>
-                    <Link href={l.href} className="block py-2.5" onClick={() => setMenuOpen(false)}>
-                      {l.label}
-                    </Link>
-                  </li>
-                ))
-              )}
-              {siteConfig.navCategories.map((c) => (
-                <li key={c.slug}>
-                  <Link
-                    href={navHrefForSlug(c.slug)}
-                    className="block py-2.5"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {c.name}
+            <ul className="space-y-0.5 text-sm">
+              {showLive ? (
+                <li>
+                  <Link href="/ao-vivo" className="block py-2.5" onClick={() => setMenuOpen(false)}>
+                    Ao vivo
                   </Link>
                 </li>
-              ))}
+              ) : null}
+              {isSportsSite() ? (
+                <li>
+                  <Link href="/futebol" className="block py-2.5" onClick={() => setMenuOpen(false)}>
+                    Partidas
+                  </Link>
+                </li>
+              ) : null}
+              <li>
+                <Link href="/ultimas" className="block py-2.5" onClick={() => setMenuOpen(false)}>
+                  Últimas
+                </Link>
+              </li>
+              <li>
+                <Link href="/estados" className="block py-2.5" onClick={() => setMenuOpen(false)}>
+                  Estados
+                </Link>
+              </li>
+              <li>
+                <Link href="/categories" className="block py-2.5" onClick={() => setMenuOpen(false)}>
+                  Categorias
+                </Link>
+              </li>
             </ul>
           </motion.nav>
         ) : null}
@@ -289,7 +254,7 @@ export function RegionalUtilityHeader() {
       </div>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-secondary">
             {siteConfig.siteName.charAt(0)}
           </span>
           <div>
@@ -399,7 +364,7 @@ export function VisualTrendingHeader() {
           </Link>
           <Link
             href="/ultimas"
-            className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-xs font-bold uppercase tracking-wide text-white"
+            className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 text-xs font-bold uppercase tracking-wide text-secondary"
           >
             Tendências
           </Link>

@@ -52,8 +52,11 @@ function CategoryHeader({
   }
 
   return (
-    <header className="mb-6 border-b-4 border-primary pb-2">
-      <h1 className="font-display text-3xl uppercase tracking-wide text-secondary md:text-4xl">
+    <header className="mb-6 border-b border-primary/25 pb-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+        Cobertura
+      </p>
+      <h1 className="mt-1 font-display text-3xl uppercase tracking-[0.06em] text-secondary md:text-4xl">
         {category.name}
       </h1>
       {category.description && (
@@ -68,14 +71,16 @@ function RankedEditorialStream({ category, articles }: CategoryLayoutProps) {
   const [lead, ...rest] = articles;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       <CategoryHeader category={category} tone="broadcast" />
       {articles.length === 0 ? (
-        <p className="text-muted">Nenhuma notícia nesta categoria.</p>
+        <p className="rounded-sm border border-primary/15 bg-white px-4 py-10 text-center text-muted">
+          Nenhuma notícia nesta categoria.
+        </p>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {lead && <ArticleCard article={lead} variant="lead" />}
-          <div className="space-y-1">
+          <div className="overflow-hidden rounded-sm border border-primary/15 bg-white px-3">
             {rest.slice(0, 5).map((article, i) => (
               <ArticleCard
                 key={article.id}
@@ -105,7 +110,9 @@ function SectionLedGrid({ category, articles }: CategoryLayoutProps) {
     <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
       <CategoryHeader category={category} tone="editorial" />
       {articles.length === 0 ? (
-        <p className="text-muted">Nenhuma notícia nesta categoria.</p>
+        <p className="rounded-sm border border-primary/15 bg-white px-4 py-10 text-center text-muted">
+          Nenhuma notícia nesta categoria.
+        </p>
       ) : (
         <AffiliateFeed className="grid gap-8 sm:grid-cols-2" cardSlot>
           {articles.map((article, i) => (

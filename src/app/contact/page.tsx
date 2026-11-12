@@ -65,7 +65,7 @@ export default function ContactPage() {
         </div>
         <button
           type="submit"
-          className="bg-primary px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-secondary"
+          className="bg-primary px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-secondary hover:bg-secondary hover:text-primary"
         >
           Enviar
         </button>

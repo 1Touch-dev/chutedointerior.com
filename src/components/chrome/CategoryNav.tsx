@@ -4,9 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { resolveChrome } from '@/lib/chrome';
 import { cn } from '@/lib/utils';
-import { cmsSections } from '@/lib/sections';
+import { cmsSectionBySlug } from '@/lib/sections';
 
-/** Category rail - contrast follows chrome.surface */
+/** Short primary rail — no horizontal scroll. Full list on /categories. */
+const PRIMARY_SLUGS = [
+  'serie-c',
+  'serie-b',
+  'brasileirao',
+  'noticias',
+  'partidas',
+] as const;
+
 export default function CategoryNav() {
   const pathname = usePathname();
   const chrome = resolveChrome().header;
@@ -16,12 +24,15 @@ export default function CategoryNav() {
   }
 
   const dark = chrome.surface === 'dark';
+  const links = PRIMARY_SLUGS.map((slug) => cmsSectionBySlug(slug)).filter(
+    (section): section is NonNullable<typeof section> => Boolean(section)
+  );
 
   const linkClass = (active: boolean) =>
     cn(
-      'shrink-0 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+      'inline-flex min-h-9 items-center rounded-sm px-2.5 text-[11px] font-semibold uppercase tracking-wide transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:min-h-10 sm:px-3 sm:text-xs',
       active
-        ? 'bg-primary text-white focus-visible:outline-accent'
+        ? 'bg-primary text-secondary focus-visible:outline-accent'
         : dark
           ? 'text-white/85 hover:bg-white/10 hover:text-white focus-visible:outline-accent'
           : 'text-secondary hover:bg-primary/10 hover:text-primary focus-visible:outline-primary'
@@ -30,16 +41,16 @@ export default function CategoryNav() {
   return (
     <nav
       className={cn(
-        'border-b',
-        dark ? 'border-white/10 bg-[#0B3D2E]' : 'border-black/10 bg-background'
+        'border-b shadow-sm',
+        dark ? 'border-white/10 bg-secondary' : 'border-primary/15 bg-background'
       )}
       aria-label="Categorias"
     >
-      <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2 scrollbar-hide">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-1 gap-y-1 px-3 py-1.5 sm:gap-x-1.5 sm:px-4 sm:py-2">
         <Link href="/" className={linkClass(pathname === '/')}>
           Início
         </Link>
-        {cmsSections.map((section) => (
+        {links.map((section) => (
           <Link
             key={section.slug}
             href={section.href}
@@ -48,11 +59,8 @@ export default function CategoryNav() {
             {section.label}
           </Link>
         ))}
-        <Link
-          href="/categories"
-          className={cn(linkClass(pathname === '/categories'), 'ml-auto')}
-        >
-          Categorias
+        <Link href="/categories" className={linkClass(pathname === '/categories')}>
+          Mais
         </Link>
       </div>
     </nav>

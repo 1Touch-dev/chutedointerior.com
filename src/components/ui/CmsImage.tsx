@@ -1,5 +1,9 @@
-/* eslint-disable @next/next/no-img-element */
+'use client';
+
 import Image, { type ImageProps } from 'next/image';
+import { useState } from 'react';
+import BrandFallback from '@/components/ui/BrandFallback';
+import { cn } from '@/lib/utils';
 
 type CmsImageProps = Omit<ImageProps, 'src'> & {
   src: string;
@@ -7,26 +11,47 @@ type CmsImageProps = Omit<ImageProps, 'src'> & {
 
 /**
  * CMS/third-party article images often come from CDNs that time out Next's
- * optimizer (huge GE/Globo assets, hotlink delays). Serve them directly.
+ * optimizer. Serve them directly, with a brand-mark fallback on error.
  */
-export default function CmsImage({ src, alt, className, fill, width, height, sizes, priority }: CmsImageProps) {
+export default function CmsImage({
+  src,
+  alt,
+  className,
+  fill,
+  width,
+  height,
+  sizes,
+  priority,
+}: CmsImageProps) {
+  const [failed, setFailed] = useState(false);
+  const trimmed = typeof src === 'string' ? src.trim() : '';
+
+  if (!trimmed || failed) {
+    return (
+      <BrandFallback
+        className={cn(fill ? 'absolute inset-0' : 'h-full min-h-[4.5rem] w-full')}
+      />
+    );
+  }
+
   if (fill) {
     return (
       <Image
-        src={src}
+        src={trimmed}
         alt={alt}
         fill
         className={className}
         sizes={sizes}
         priority={priority}
         unoptimized
+        onError={() => setFailed(true)}
       />
     );
   }
 
   return (
     <Image
-      src={src}
+      src={trimmed}
       alt={alt}
       width={width}
       height={height}
@@ -34,6 +59,7 @@ export default function CmsImage({ src, alt, className, fill, width, height, siz
       sizes={sizes}
       priority={priority}
       unoptimized
+      onError={() => setFailed(true)}
     />
   );
 }

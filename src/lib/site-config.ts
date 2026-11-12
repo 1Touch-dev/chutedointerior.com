@@ -173,17 +173,17 @@ export const siteConfig: SiteConfig = {
   },
   layouts: {
     "homepage": "brief-composed",
-    "category": "section-led-grid",
+    "category": "ranked-editorial-stream",
     "article": "media-rich-story",
-    "search": "editorial-results"
+    "search": "compact-results"
   },
   density: "balanced",
   motion: "restrained",
   components: {
     "header": {
-      "variant": "mega-nav",
+      "variant": "broadcast-sticky",
       "options": {
-        "showWeather": true
+        "showWeather": false
       }
     },
     "breakingNews": {
@@ -193,7 +193,7 @@ export const siteConfig: SiteConfig = {
       }
     },
     "featuredCard": {
-      "variant": "balanced-card",
+      "variant": "image-first-large",
       "options": {
         "showCategory": true
       }
@@ -202,7 +202,7 @@ export const siteConfig: SiteConfig = {
       "variant": "horizontal-balanced"
     },
     "footer": {
-      "variant": "minimal-links",
+      "variant": "dense-columns",
       "options": {
         "showLocalLinks": true
       }
@@ -283,9 +283,9 @@ export const siteConfig: SiteConfig = {
       {
         "id": "lead",
         "kind": "hero",
-        "block": "HeroMagazine",
+        "block": "HeroAsymmetric",
         "span": "full",
-        "limit": 1,
+        "limit": 4,
         "options": {
           "source": "brief"
         }
@@ -318,7 +318,7 @@ export const siteConfig: SiteConfig = {
         "id": "nacional",
         "kind": "section-pair",
         "block": "DualSection",
-        "limit": 2,
+        "limit": 6,
         "options": {}
       },
       {
@@ -366,27 +366,27 @@ export const siteConfig: SiteConfig = {
   chrome: {
     "schemaVersion": "chrome-v1",
     "header": {
-      "family": "visual-trending",
+      "family": "broadcast-scoreboard",
       "brandPosition": "left",
       "navPosition": "below-main",
-      "breakingPosition": "none",
-      "searchMode": "expanded",
+      "breakingPosition": "below-nav",
+      "searchMode": "icon",
       "stickyMode": "compact",
       "logoScale": "standard",
-      "edgeStyle": "layered",
+      "edgeStyle": "flat",
       "motionProfile": "energetic",
-      "signatureModule": "trending-carousel",
-      "surface": "light"
+      "signatureModule": "live-score-indicator",
+      "surface": "dark"
     },
     "footer": {
-      "family": "editorial-statement",
+      "family": "sports-clubhouse",
       "brandScale": "large",
-      "backgroundTreatment": "tonal",
-      "columnRhythm": "stacked",
+      "backgroundTreatment": "solid",
+      "columnRhythm": "asymmetric",
       "showNewsletter": true,
-      "showSocialWall": false,
-      "showPopularTopics": false,
-      "showAppPromotion": false
+      "showSocialWall": true,
+      "showPopularTopics": true,
+      "showAppPromotion": true
     }
   },
   integrations: {

@@ -46,20 +46,20 @@ export default function FooterNewsletterForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="Seu e-mail"
-          className="min-h-11 flex-1 border border-black/20 bg-white px-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-primary"
+          className="min-h-11 flex-1 rounded-sm border border-white/20 bg-white/10 px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-accent"
           autoComplete="email"
           disabled={pending}
         />
         <button
           type="submit"
           disabled={pending}
-          className="min-h-11 bg-primary px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-secondary disabled:opacity-70"
+          className="min-h-11 rounded-sm bg-accent px-4 text-xs font-bold uppercase tracking-wider text-secondary hover:bg-white disabled:opacity-70"
         >
           {pending ? 'Enviando...' : 'Assinar'}
         </button>
       </div>
       {note ? (
-        <p role={error ? 'alert' : 'status'} className={`text-xs ${error ? 'text-rose-700' : 'text-emerald-700'}`}>
+        <p role={error ? 'alert' : 'status'} className={`text-xs ${error ? 'text-rose-300' : 'text-accent'}`}>
           {note}
         </p>
       ) : null}

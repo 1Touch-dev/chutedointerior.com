@@ -5,6 +5,7 @@ import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import Link from 'next/link';
 import type React from 'react';
 import ArticleCard from '@/components/cards/ArticleCard';
+import BrandFallback from '@/components/ui/BrandFallback';
 import MotionSection from '@/components/ui/MotionSection';
 import type { Article } from '@/lib/cms-client';
 import {
@@ -72,7 +73,7 @@ function HeroSplit({ articles }: { articles: Article[] }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={a.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs uppercase text-muted-text">Sem imagem</div>
+          <BrandFallback className="absolute inset-0" />
         )}
       </div>
     </section>
@@ -143,18 +144,36 @@ function HeroCompact({ articles }: { articles: Article[] }) {
 }
 
 function HeroAsymmetric({ articles }: { articles: Article[] }) {
-  const [a, b] = articles;
+  const [a, b, ...rest] = articles;
   if (!a) return null;
+  const side = [b, ...rest]
+    .filter((item): item is Article => Boolean(item))
+    .slice(0, 3);
   return (
-    <div className="grid gap-3 md:grid-cols-12">
-      <div className="md:col-span-8">
-        <ArticleCard article={a} variant={resolveFeaturedCardVariant('image-first-large')} />
+    <div className="grid gap-3 sm:gap-4 lg:grid-cols-12">
+      <div className="min-w-0 lg:col-span-8">
+        <ArticleCard
+          article={a}
+          variant={resolveFeaturedCardVariant('image-first-large')}
+        />
       </div>
-      {b && (
-        <div className="md:col-span-4">
-          <ArticleCard article={b} variant="compact" />
+      <aside className="flex min-w-0 flex-col gap-0 overflow-hidden rounded-sm border border-primary/15 bg-white lg:col-span-4">
+        <div className="flex items-center justify-between border-b border-primary/15 bg-secondary px-3 py-2.5 sm:px-4 sm:py-3">
+          <p className="font-display text-sm font-bold uppercase tracking-[0.16em] text-white">
+            Destaques
+          </p>
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
         </div>
-      )}
+        <div className="flex-1 divide-y divide-primary/10 px-2 sm:px-3">
+          {side.length ? (
+            side.map((article) => (
+              <ArticleCard key={article.id} article={article} variant="horizontal" />
+            ))
+          ) : (
+            <p className="py-6 text-xs text-muted">Sem matérias laterais.</p>
+          )}
+        </div>
+      </aside>
     </div>
   );
 }
@@ -187,7 +206,7 @@ function HeroBroadcast({ articles }: { articles: Article[] }) {
   if (!a) return null;
   return (
     <section className="overflow-hidden rounded border-2 border-primary bg-white">
-      <div className="flex items-center gap-2 bg-primary px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
+      <div className="flex items-center gap-2 bg-primary px-3 py-1 text-xs font-bold uppercase tracking-widest text-secondary">
         <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-accent" />
         Ao vivo
       </div>
@@ -279,9 +298,10 @@ function HeroCoverDuo({ articles }: { articles: Article[] }) {
 
 function RankedRail({ articles }: { articles: Article[] }) {
   return (
-    <div className="rounded border border-black/10 bg-surface p-3">
-      <h2 className="mb-2 border-b-2 border-primary pb-1 font-display text-lg uppercase tracking-wide text-secondary">
-        Ao vivo
+    <div className="rounded-sm border border-primary/15 bg-white p-4">
+      <h2 className="mb-3 flex items-center gap-2 border-b border-primary/15 pb-2 font-display text-xl uppercase tracking-[0.08em] text-secondary">
+        <span className="h-2 w-2 rounded-full bg-[var(--color-live)]" aria-hidden />
+        Em alta
       </h2>
       {articles.map((article, i) => (
         <ArticleCard key={article.id} article={article} variant="rail" rank={i + 1} />
@@ -323,10 +343,18 @@ function CategoryRail({ articles }: { articles: Article[] }) {
 function HorizontalStream({ articles }: { articles: Article[] }) {
   return (
     <section>
-      <h2 className="mb-3 border-b-2 border-primary pb-1 font-display text-xl uppercase tracking-wide text-secondary">
-        Últimas
-      </h2>
-      <div className="divide-y divide-black/10 rounded border border-black/10 bg-white">
+      <div className="mb-4 flex items-end justify-between gap-3 border-b border-primary/20 pb-2">
+        <h2 className="font-display text-2xl uppercase tracking-[0.08em] text-secondary">
+          Últimas
+        </h2>
+        <Link
+          href="/ultimas"
+          className="text-[11px] font-bold uppercase tracking-wider text-primary hover:text-secondary"
+        >
+          Ver todas
+        </Link>
+      </div>
+      <div className="rounded-sm border border-primary/15 bg-white">
         {articles.map((article) => (
           <div key={article.id} className="px-3">
             <ArticleCard article={article} variant="horizontal" />
@@ -393,24 +421,29 @@ function DiscoveryChips() {
         href: navHrefForSlug(cat.slug),
       }));
   return (
-    <div className="flex flex-wrap gap-2">
-      {chips.map((chip) => (
-        <Link
-          key={chip.href}
-          href={chip.href}
-          className="rounded-full border border-black/10 bg-surface px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-secondary hover:border-primary hover:text-primary"
-        >
-          {chip.name}
-        </Link>
-      ))}
-    </div>
+    <section>
+      <h2 className="mb-3 font-display text-lg uppercase tracking-[0.12em] text-secondary">
+        Competições
+      </h2>
+      <div className="flex flex-wrap gap-2">
+        {chips.map((chip) => (
+          <Link
+            key={chip.href}
+            href={chip.href}
+            className="rounded-sm border border-primary/20 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-secondary transition-colors hover:border-primary hover:bg-primary"
+          >
+            {chip.name}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
 function MostReadPanel({ articles }: { articles: Article[] }) {
   return (
-    <div className="rounded border border-black/10 bg-surface p-4">
-      <h2 className="mb-3 font-display text-lg uppercase tracking-wide text-primary">
+    <div className="rounded-sm border border-primary/15 bg-surface p-4">
+      <h2 className="mb-3 font-display text-lg uppercase tracking-[0.1em] text-secondary">
         Mais lidas
       </h2>
       {articles.map((article, i) => (
@@ -422,14 +455,19 @@ function MostReadPanel({ articles }: { articles: Article[] }) {
 
 function NewsletterCard() {
   return (
-    <div className="rounded bg-secondary p-4 text-white">
-      <p className="text-xs font-bold uppercase tracking-widest text-accent">Newsletter</p>
-      <p className="mt-2 text-sm text-white/80">
+    <div className="rounded-sm border border-accent/40 bg-secondary p-5 text-white">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
+        Newsletter
+      </p>
+      <p className="mt-2 font-display text-2xl uppercase tracking-wide">
+        O interior na sua caixa
+      </p>
+      <p className="mt-2 text-sm text-white/70">
         Receba as principais notícias de {siteConfig.siteName} no seu e-mail.
       </p>
       <Link
         href="/contact"
-        className="mt-3 inline-block rounded bg-primary px-4 py-2 text-xs font-bold uppercase"
+        className="mt-4 inline-flex min-h-11 items-center rounded-sm bg-accent px-4 text-xs font-bold uppercase tracking-wider text-secondary"
       >
         Inscrever-se
       </Link>
@@ -445,16 +483,16 @@ function DualSection({ articles }: { articles: Article[] }) {
   const secondary = siteConfig.navCategories[1];
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <section className="rounded-lg border border-black/10 bg-white p-4">
-        <h2 className="mb-3 font-heading text-sm font-bold uppercase">
+      <section className="rounded-sm border border-primary/15 bg-white p-4">
+        <h2 className="mb-3 border-b border-accent/50 pb-2 font-display text-lg uppercase tracking-[0.1em] text-secondary">
           {primary?.name || 'Destaques'}
         </h2>
         {left.map((a) => (
           <ArticleCard key={a.id} article={a} variant="horizontal" />
         ))}
       </section>
-      <section className="rounded-lg border border-black/10 bg-white p-4">
-        <h2 className="mb-3 font-heading text-sm font-bold uppercase">
+      <section className="rounded-sm border border-primary/15 bg-white p-4">
+        <h2 className="mb-3 border-b border-primary/30 pb-2 font-display text-lg uppercase tracking-[0.1em] text-secondary">
           {secondary?.name || 'Mais'}
         </h2>
         {right.map((a) => (
@@ -580,13 +618,13 @@ function renderBlock(
 function shellClass(recipe: HomepageRecipe): string {
   switch (recipe.grid) {
     case 'mosaic-12':
-      return 'mx-auto max-w-7xl space-y-6 px-4 py-6';
+      return 'mx-auto max-w-7xl space-y-6 px-3 py-5 sm:space-y-8 sm:px-4 sm:py-8 md:space-y-10';
     case 'scoreboard-split':
-      return 'mx-auto max-w-7xl space-y-4 px-4 py-4';
+      return 'mx-auto max-w-7xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-4 sm:py-5';
     case 'main-sidebar':
-      return 'mx-auto max-w-7xl px-4 py-4';
+      return 'mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-5';
     default:
-      return 'mx-auto max-w-6xl space-y-6 px-4 py-8';
+      return 'mx-auto max-w-6xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8';
   }
 }
 

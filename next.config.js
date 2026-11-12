@@ -94,7 +94,7 @@ const nextConfig = {
     return [
       {
         source: '/favicon.ico',
-        destination: '/icon',
+        destination: '/logo-mark.jpg',
       },
     ];
   },

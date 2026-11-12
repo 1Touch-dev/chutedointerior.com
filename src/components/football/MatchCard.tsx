@@ -114,7 +114,7 @@ export default function MatchCard({
       className={cn(
         'min-w-0 rounded-xl border border-black/[0.08] bg-white px-3 py-3 transition-colors duration-150 sm:px-4 sm:py-3.5',
         'hover:border-primary/40',
-        live && 'border-primary/30 bg-[#0B3D2E] text-white hover:border-accent/50'
+        live && 'border-primary/30 bg-secondary text-white hover:border-accent/50'
       )}
     >
       <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide">

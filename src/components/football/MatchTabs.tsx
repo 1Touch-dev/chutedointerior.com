@@ -30,7 +30,7 @@ export default function MatchTabs({ upcoming, completed }: { upcoming: IFootball
               role="tab"
               aria-selected={tab === value}
               className={`rounded-md px-3 py-2 text-[11px] font-bold uppercase tracking-wider sm:py-1 ${
-                tab === value ? 'bg-primary text-white' : 'text-muted'
+                tab === value ? 'bg-primary text-secondary' : 'text-muted'
               }`}
               onClick={() => setTab(value)}
             >

@@ -28,7 +28,16 @@
   }
 
   body {
-    @apply min-h-screen bg-background font-body text-foreground antialiased;
+    @apply min-h-screen overflow-x-hidden bg-background font-body text-foreground antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(232, 176, 8, 0.1), transparent),
+      linear-gradient(180deg, var(--color-background), var(--color-background));
+  }
+
+  img,
+  video,
+  iframe {
+    max-width: 100%;
   }
 
   h1,

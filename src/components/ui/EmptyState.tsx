@@ -75,7 +75,7 @@ export default function EmptyState({
         <p className="mx-auto mt-3 max-w-md text-sm text-white/75">{description}</p>
         <Link
           href={actionHref}
-          className="mt-6 inline-block bg-primary px-5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white"
+          className="mt-6 inline-block bg-primary px-5 py-2.5 text-[10px] font-bold uppercase tracking-wider text-secondary"
         >
           {actionLabel}
         </Link>

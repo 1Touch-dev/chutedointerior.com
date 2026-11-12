@@ -59,7 +59,7 @@ function LiveTicker({ headlines }: BreakingNewsProps) {
 
   return (
     <div
-      className="group/ticker flex items-stretch overflow-hidden bg-primary text-white"
+      className="group/ticker flex items-stretch overflow-hidden bg-primary text-secondary"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => {
         if (!document.hidden) setPaused(false);

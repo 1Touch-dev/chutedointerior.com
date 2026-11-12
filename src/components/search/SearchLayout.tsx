@@ -12,17 +12,17 @@ interface SearchLayoutProps {
 
 function SearchForm({ query }: { query: string }) {
   return (
-    <form action="/busca" method="get" className="mb-8 flex gap-2">
+    <form action="/busca" method="get" className="mb-8 flex flex-col gap-2 sm:flex-row">
       <input
         type="search"
         name="q"
         defaultValue={query}
         placeholder="Digite palavras-chave..."
-        className="flex-1 rounded border border-black/20 bg-white px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+        className="min-h-11 flex-1 rounded-sm border border-primary/20 bg-white px-4 text-sm outline-none focus:border-primary"
       />
       <button
         type="submit"
-        className="rounded bg-primary px-6 py-2.5 text-sm font-bold uppercase text-white transition-transform motion-energetic:hover:scale-[1.02]"
+        className="min-h-11 rounded-sm bg-primary px-6 text-sm font-bold uppercase tracking-wider text-secondary transition-colors hover:bg-secondary hover:text-primary"
       >
         Buscar
       </button>
@@ -32,9 +32,14 @@ function SearchForm({ query }: { query: string }) {
 
 function CompactResults({ query, results }: SearchLayoutProps) {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      <header className="mb-6 border-b-2 border-primary pb-2">
-        <h1 className="font-display text-3xl uppercase tracking-wide text-secondary">Busca</h1>
+    <div className="mx-auto max-w-7xl px-4 py-8">
+      <header className="mb-6 border-b border-primary/20 pb-3">
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+          Arquivo
+        </p>
+        <h1 className="mt-1 font-display text-4xl uppercase tracking-[0.06em] text-secondary">
+          Busca
+        </h1>
       </header>
       <SearchForm query={query} />
       {query && (
@@ -43,9 +48,11 @@ function CompactResults({ query, results }: SearchLayoutProps) {
         </p>
       )}
       {query && results.length === 0 && (
-        <p className="text-muted">Nenhuma notícia encontrada. Tente outros termos.</p>
+        <p className="rounded-sm border border-primary/15 bg-white px-4 py-8 text-center text-muted">
+          Nenhuma notícia encontrada. Tente outros termos.
+        </p>
       )}
-      <AffiliateFeed className="space-y-2">
+      <AffiliateFeed className="overflow-hidden rounded-sm border border-primary/15 bg-white">
         {results.map((article) => (
           <div key={article.id} className="px-4">
             <ArticleCard

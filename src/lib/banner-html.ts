@@ -1,10 +1,23 @@
+import { BRAND_LOGO_SRC } from '@/lib/brand';
 import { siteConfig } from '@/lib/site-config';
+import { absoluteUrl } from '@/lib/site-url';
 
 const escapedHost = siteConfig.cms.websiteKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const absoluteSiteHref = new RegExp(
   `^https?:\\/\\/(?:www\\.)?${escapedHost}(?=$|[/?#])`,
   'i'
 );
+
+/** CMS often ships via.placeholder “Breaking News” art — swap for brand mark. */
+const PLACEHOLDER_IMG_SRC =
+  /(?:via\.placeholder\.com|placehold\.co|placehold\.it|dummyimage\.com|(?:^|\/\/)placeholder\.com)|\bBreaking[\s+_%]*News\b/i;
+
+export function bannerLogoFallbackSrc(origin?: string): string {
+  if (origin?.trim()) {
+    return `${origin.replace(/\/$/, '')}${BRAND_LOGO_SRC}`;
+  }
+  return absoluteUrl(BRAND_LOGO_SRC);
+}
 
 export const BANNER_FRAME_CLASS =
   'aspect-[2.2/1] min-h-[160px] w-full overflow-hidden sm:min-h-[200px] md:min-h-[240px]';
@@ -47,21 +60,47 @@ export function sanitizeBannerHtml(html: string): string {
 /** Fit one slide into the hero frame — CMS HTML often stacks many `.banner-slide`s. */
 export const BANNER_FIT_STYLE = `<style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;max-width:100%;overflow:hidden!important;background:#0B3D2E}
+html,body{margin:0;width:100%;height:100%;max-width:100%;overflow:hidden!important;background:#1a1608}
 .banner-slider,.banner-slide,.banner-link,.banner-image-wrapper{
   height:100%!important;width:100%!important;max-width:100%!important;max-height:100%!important;
   aspect-ratio:auto!important;margin:0!important;border:0!important;
   border-radius:0!important;box-shadow:none!important;overflow:hidden!important
 }
 .banner-image-wrapper img,.banner-slide img{width:100%!important;height:100%!important;object-fit:cover!important;display:block}
+.banner-image-wrapper img.banner-logo-fallback,.banner-slide img.banner-logo-fallback{
+  object-fit:contain!important;object-position:center;padding:8% 18%;background:#0b0f1a
+}
 .banner-overlay,.banner-content,.banner-text{max-width:100%;overflow:hidden}
 .banner-slide ~ .banner-slide{display:none!important}
 img,video{max-width:100%;display:block}
 </style>`;
 
-/** Rewrite same-site article links to `/artigo/...` and open in top window. */
-export function prepareBannerHtml(html: string): string {
-  const cleaned = sanitizeBannerHtml(html);
+function withLogoFallback(html: string, logoSrc: string): string {
+  return html.replace(/<img\b([^>]*?)>/gi, (full, attrs: string) => {
+    const srcMatch = attrs.match(/\bsrc\s*=\s*(["'])([\s\S]*?)\1/i);
+    if (!srcMatch) return full;
+    const src = srcMatch[2].replace(/&amp;/g, '&').trim();
+    if (!PLACEHOLDER_IMG_SRC.test(src)) return full;
+
+    const quote = srcMatch[1];
+    let next = attrs.replace(srcMatch[0], `src=${quote}${logoSrc}${quote}`);
+    if (/\bclass\s*=\s*(["'])([\s\S]*?)\1/i.test(next)) {
+      next = next.replace(/\bclass\s*=\s*(["'])([\s\S]*?)\1/i, (_m, q: string, cls: string) => {
+        const merged = cls.includes('banner-logo-fallback')
+          ? cls
+          : `${cls} banner-logo-fallback`.trim();
+        return `class=${q}${merged}${q}`;
+      });
+    } else {
+      next += ' class="banner-logo-fallback"';
+    }
+    return `<img${next}>`;
+  });
+}
+
+/** Rewrite placeholders → logo, same-site article links → `/artigo/...`. */
+export function prepareBannerHtml(html: string, logoSrc = bannerLogoFallbackSrc()): string {
+  const cleaned = withLogoFallback(sanitizeBannerHtml(html), logoSrc);
   return cleaned.replace(/<a\b([^>]*?)>/gi, (full, attrs: string) => {
     const hrefMatch = attrs.match(/\bhref\s*=\s*(["'])([\s\S]*?)\1/i);
     if (!hrefMatch) return full;

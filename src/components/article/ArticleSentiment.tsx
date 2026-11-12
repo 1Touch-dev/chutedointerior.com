@@ -50,7 +50,14 @@ export default function ArticleSentiment({ slug, articleId }: { slug: string; ar
   };
 
   useEffect(() => {
-    void reload();
+    let cancelled = false;
+    void (async () => {
+      const rows = await getSlugEvents(slug);
+      if (!cancelled && rows) setEvents(rows);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   const send = async (payload: Record<string, unknown>) => {
@@ -132,7 +139,7 @@ export default function ArticleSentiment({ slug, articleId }: { slug: string; ar
         <button
           type="submit"
           disabled={pending || !comment.trim()}
-          className="bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-secondary disabled:opacity-70"
+          className="bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-secondary hover:bg-secondary hover:text-primary disabled:opacity-70"
         >
           {pending ? 'Enviando...' : 'Enviar'}
         </button>

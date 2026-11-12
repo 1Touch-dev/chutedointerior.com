@@ -76,9 +76,9 @@ export const organizationJsonLd = () => ({
       url: siteUrl,
       logo: {
         '@type': 'ImageObject',
-        url: absoluteUrl('/icon'),
-        width: 32,
-        height: 32,
+        url: absoluteUrl('/logo-mark.jpg'),
+        width: 512,
+        height: 512,
       },
       publishingPrinciples: absoluteUrl('/about'),
       areaServed: { '@type': 'Country', name: 'Brasil' },
@@ -109,12 +109,12 @@ export const newsArticleJsonLd = (article: {
     url: siteUrl,
     logo: {
       '@type': 'ImageObject',
-      url: absoluteUrl('/icon'),
-      width: 32,
-      height: 32,
+      url: absoluteUrl('/logo-mark.jpg'),
+      width: 512,
+      height: 512,
     },
   },
-  image: article.imageUrl ? [article.imageUrl] : [absoluteUrl(siteConfig.seo.defaultOgImage)],
+  image: article.imageUrl ? [article.imageUrl] : [absoluteUrl('/logo-mark.jpg')],
   mainEntityOfPage: absoluteUrl(`/artigo/${article.slug}`),
 });
 
