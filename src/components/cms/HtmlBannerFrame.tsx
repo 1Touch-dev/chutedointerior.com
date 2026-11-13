@@ -8,7 +8,7 @@ import {
   prepareBannerHtml,
 } from '@/lib/banner-html';
 
-/** Clipped CMS HTML frame — no scripts, no inner scrollbars. */
+/** Clipped CMS HTML frame — no scripts, no inner scrollbars. Last-resort path. */
 const shell = (html: string, logoSrc: string) => `<!DOCTYPE html>
 <html>
 <head>
@@ -36,10 +36,9 @@ export default function HtmlBannerFrame({
 
   return (
     <div className={className}>
-      {/* Inline size fallback: BANNER_FRAME_CLASS lives in src/lib; keep frame visible if utilities lag. */}
       <div
         className={`relative ${BANNER_FRAME_CLASS}`}
-        style={{ aspectRatio: '2.2 / 1', minHeight: 160 }}
+        style={{ aspectRatio: '5 / 4', minHeight: 220 }}
       >
         <iframe
           title={title}

@@ -2,26 +2,46 @@ import EditorialBannerCarousel, {
   type EditorialSlide,
 } from '@/components/cms/EditorialBannerCarousel';
 import { getEditorialBanners, type IEditorialBanner } from '@/lib/banners';
-import { isLikelyImageUrl, sameSitePath } from '@/lib/banner-html';
+import {
+  isLikelyImageUrl,
+  isPlaceholderImageSrc,
+  parseCmsBannerHtml,
+  sameSitePath,
+} from '@/lib/banner-html';
 
 function toSlide(banner: IEditorialBanner, index: number): EditorialSlide | null {
-  const title = banner.title || 'Destaque';
-  const id = banner._id || `${title}-${index}`;
+  const fallbackTitle = banner.title || 'Destaque';
+  const id = banner._id || `${fallbackTitle}-${index}`;
 
   if (banner.type === 'html' && banner.htmlContent?.trim()) {
-    return { id, kind: 'html', title, html: banner.htmlContent };
+    const parsed = parseCmsBannerHtml(banner.htmlContent);
+    if (parsed?.title || parsed?.image || parsed?.excerpt) {
+      return {
+        id,
+        kind: 'hero',
+        title: parsed.title || fallbackTitle,
+        image: parsed.image,
+        href: parsed.href,
+        external: Boolean(parsed.href && !sameSitePath(parsed.href)),
+        excerpt: parsed.excerpt,
+        category: parsed.category,
+        meta: parsed.meta,
+      };
+    }
+    return { id, kind: 'html', title: fallbackTitle, html: banner.htmlContent };
   }
 
-  const image = banner.imageUrl || (isLikelyImageUrl(banner.url) ? banner.url : undefined);
-  if (!image) return null;
-
+  const rawImage = banner.imageUrl || (isLikelyImageUrl(banner.url) ? banner.url : undefined);
+  const image = rawImage && !isPlaceholderImageSrc(rawImage) ? rawImage : undefined;
   const rawHref = banner.ctaUrl || (!isLikelyImageUrl(banner.url) ? banner.url : undefined);
   const local = rawHref ? sameSitePath(rawHref) : null;
 
+  if (!image && !fallbackTitle) return null;
+
   return {
     id,
-    kind: 'image',
-    title,
+    kind: 'hero',
+    title: fallbackTitle,
     image,
     href: local || rawHref || undefined,
     external: Boolean(rawHref && !local),
