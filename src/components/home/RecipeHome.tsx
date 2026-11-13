@@ -320,7 +320,7 @@ function CategoryRail({ articles }: { articles: Article[] }) {
         </h2>
         {primary && (
           <Link
-            href={`/categoria/${primary.slug}`}
+            href={navHrefForSlug(primary.slug)}
             className="text-xs font-semibold uppercase text-primary hover:underline"
           >
             Ver mais

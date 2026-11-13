@@ -6,12 +6,16 @@ import { resolveChrome } from '@/lib/chrome';
 import { cn } from '@/lib/utils';
 import { cmsSectionBySlug } from '@/lib/sections';
 
-/** Short primary rail — no horizontal scroll. Full list on /categories. */
+/**
+ * Short primary rail — no horizontal scroll. Full Postman desk list on /categories.
+ * Prefer sections that already have published CMS inventory so the rail isn’t empty.
+ * (Série B / Brasileirão APIs exist; they stay on /categories until CMS has published rows.)
+ */
 const PRIMARY_SLUGS = [
   'serie-c',
-  'serie-b',
-  'brasileirao',
   'noticias',
+  'base-e-amador',
+  'outras',
   'partidas',
 ] as const;
 

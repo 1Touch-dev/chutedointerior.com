@@ -2,13 +2,16 @@ import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import ArticleCard from '@/components/cards/ArticleCard';
 import { getArticlesByEndpoint } from '@/lib/cms-client';
 
-export const EMPTY_NOTES = 'Sem notas nesta seção no momento.';
+/** Public empty copy — section API exists; CMS has no published rows for this endpoint yet. */
+export const EMPTY_NOTES = 'Sem matérias publicadas nesta seção no momento.';
 
+/** Renders one Postman desk `endpoint` feed for Chute do Interior. */
 export default async function SectionArticles({
   endpoint,
-  limit = 24,
+  limit = 20,
   heading,
 }: {
+  /** Exact CMS endpoint name, e.g. `Série C`, `Notícias`, `Other`. */
   endpoint: string;
   limit?: number;
   heading?: string;

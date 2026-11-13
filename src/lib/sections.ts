@@ -1,11 +1,19 @@
+import {
+  DESK_ARTICLE_ENDPOINTS,
+  type DeskArticleEndpoint,
+} from '@/lib/cmsEndpoints';
+
 export type CmsSection = {
-  endpoint: string;
+  endpoint: DeskArticleEndpoint;
   slug: string;
   href: string;
   label: string;
 };
 
-/** Exact CMS endpoint names. Tabela de posições is an article section, not the points table. */
+/**
+ * Exact CMS endpoint names → public routes.
+ * Tabela de posições is an article section, not the football points table.
+ */
 export const cmsSections: CmsSection[] = [
   { endpoint: 'Série C', slug: 'serie-c', href: '/serie-c', label: 'Série C' },
   {
@@ -36,7 +44,15 @@ export const cmsSections: CmsSection[] = [
   { endpoint: 'Other', slug: 'outras', href: '/outras', label: 'Outras' },
 ];
 
+/** Guard: every Postman desk endpoint must have a section route. */
+const sectionEndpoints = new Set(cmsSections.map((section) => section.endpoint));
+for (const endpoint of DESK_ARTICLE_ENDPOINTS) {
+  if (!sectionEndpoints.has(endpoint)) {
+    throw new Error(`Missing cmsSections route for Postman endpoint: ${endpoint}`);
+  }
+}
+
 export const cmsSectionBySlug = (slug: string) => cmsSections.find((section) => section.slug === slug);
 
 export const cmsSectionByEndpoint = (endpoint: string) =>
-  cmsSections.find((section) => section.endpoint === endpoint);
+  cmsSections.find((section) => section.endpoint.toLowerCase() === endpoint.trim().toLowerCase());

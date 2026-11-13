@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getCategories } from '@/lib/cms-client';
+import { navHrefForSlug } from '@/lib/competitions';
 import { siteConfig } from '@/lib/site-config';
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export default async function CategoriesPage() {
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={`/categoria/${cat.slug}`}
+              href={navHrefForSlug(cat.slug)}
               className="group flex items-baseline justify-between gap-4 py-6"
             >
               <h2 className="font-heading text-2xl font-bold text-foreground group-hover:text-primary">
@@ -61,7 +62,7 @@ export default async function CategoriesPage() {
           {categories.map((cat, i) => (
             <Link
               key={cat.id}
-              href={`/categoria/${cat.slug}`}
+              href={navHrefForSlug(cat.slug)}
               className="group flex gap-3 rounded-xl border border-black/10 bg-surface p-4 hover:border-primary/40"
             >
               <span className="font-display text-2xl text-primary">{String(i + 1).padStart(2, '0')}</span>
@@ -92,7 +93,7 @@ export default async function CategoriesPage() {
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/categoria/${cat.slug}`}
+            href={navHrefForSlug(cat.slug)}
             className="group rounded-none border-l-4 border-primary bg-surface p-6 shadow-card transition-shadow hover:shadow-elevated"
           >
             <h2 className="font-display text-xl uppercase tracking-wide text-secondary group-hover:text-primary">

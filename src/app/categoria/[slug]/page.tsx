@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import CategoryLayout from '@/components/category/CategoryLayout';
 import { getByCategory, getCategories } from '@/lib/cms-client';
 import { siteConfig } from '@/lib/site-config';
-import { isSportsSite, navHrefForSlug } from '@/lib/competitions';
+import { navHrefForSlug } from '@/lib/competitions';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -26,11 +26,10 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  if (isSportsSite()) {
-    const sportsHref = navHrefForSlug(slug);
-    if (sportsHref !== `/categoria/${slug}`) {
-      redirect(sportsHref);
-    }
+  // Desk CMS sections live on /[secao] (or aliases like /ultimas, /futebol).
+  const sectionHref = navHrefForSlug(slug);
+  if (sectionHref !== `/categoria/${slug}`) {
+    redirect(sectionHref);
   }
   const categories = await getCategories();
   const category = categories.find((c) => c.slug === slug);

@@ -398,7 +398,7 @@ export const siteConfig: SiteConfig = {
     "FOOTBALL_LEAGUES": "/football/brazil/leagues",
     "FOOTBALL_BRAZIL_LEAGUE": "/football/brazil/league/brasileirao?season=2026",
     "MARKETS": "TODO_MARKETS_API",
-    "ARTICLES_LIST": "/ai-articles?targetWebsite=chutedointerior.com&endpoint=HomePage&limit=20&page=1&sort=createdAt&order=desc",
+    "ARTICLES_LIST": "/ai-articles?targetWebsite=chutedointerior.com&endpoint=HomePage&limit=12&page=1&sort=createdAt&order=desc",
     "ARTICLE_BY_SLUG": "/ai-articles/slug/{slug}?targetWebsite=chutedointerior.com",
     "BANNERS": "/banners/public/chutedointerior.com"
   },

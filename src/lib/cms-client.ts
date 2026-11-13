@@ -9,6 +9,12 @@ import {
 } from '@/data/dummy';
 import { siteConfig } from '@/lib/site-config';
 import { BRAZILIAN_STATES, getStateByUf, type BrazilianState } from '@/data/brazilian-states';
+import {
+  HOME_ARTICLE_ENDPOINT,
+  HOME_ARTICLE_LIMIT,
+  isNoiseAssignment,
+  namesIncludeEndpoint,
+} from '@/lib/cmsEndpoints';
 import { cmsSectionByEndpoint, cmsSectionBySlug, cmsSections } from '@/lib/sections';
 
 export type { Article, Category, BreakingHeadline, AlertItem, LiveStory, BrazilianState };
@@ -34,13 +40,6 @@ function isPublic(doc: Record<string, unknown>): boolean {
     if (!Number.isNaN(t) && t > Date.now()) return false;
   }
   return true;
-}
-
-/** Stable to the minute so Next fetch cache + revalidate actually hit. */
-function scheduledBeforeBucket(): string {
-  const bucket = new Date();
-  bucket.setUTCSeconds(0, 0);
-  return bucket.toISOString();
 }
 
 function assignmentNames(raw: Record<string, unknown>): string[] {
@@ -221,14 +220,14 @@ type ListPayload = {
 
 async function fetchEndpoint(endpoint: string, limit = 20, page = 1): Promise<Article[] | null> {
   if (!CMS_BASE || !WEBSITE_KEY) return null;
+  // Match Postman Brazil CMS — desk sites → Chute do Interior query shape.
   const params = new URLSearchParams({
     targetWebsite: WEBSITE_KEY,
     endpoint,
     limit: String(limit),
     page: String(page),
-    sort: 'scheduledTime',
+    sort: 'createdAt',
     order: 'desc',
-    scheduledBefore: scheduledBeforeBucket(),
   });
 
   try {
@@ -242,19 +241,28 @@ async function fetchEndpoint(endpoint: string, limit = 20, page = 1): Promise<Ar
     const records = rows.filter(
       (row): row is Record<string, unknown> => !!row && typeof row === 'object'
     );
-    const articles = records
-      .filter(isPublic)
+    const published = records.filter(isPublic);
+    const articles = published
       .map((row, i) => mapCmsArticle(row, i))
       .filter((article) => article.slug && article.title);
 
-    if (endpoint === 'HomePage') return articles;
+    if (endpoint === HOME_ARTICLE_ENDPOINT) {
+      return articles.filter((article) => {
+        const source = published.find((row) => String(row.slug || '') === article.slug);
+        if (!source) return true;
+        const names = assignmentNames(source);
+        if (names.length === 0) return true;
+        return !names.every((name) => isNoiseAssignment(name));
+      });
+    }
 
     const total = json.meta?.total;
+    // CMS sometimes returns unrelated rows when meta.total is 0 — treat as empty.
     if (total === 0) return [];
 
     const matched = articles.filter((article) => {
-      const source = records.find((row) => String(row.slug || '') === article.slug);
-      return source ? assignmentNames(source).includes(endpoint) : false;
+      const source = published.find((row) => String(row.slug || '') === article.slug);
+      return source ? namesIncludeEndpoint(assignmentNames(source), endpoint) : false;
     });
     if (matched.length > 0) return matched;
     if (typeof total === 'number' && total > 0) return articles;
@@ -272,15 +280,17 @@ export async function getArticlesByEndpoint(endpoint: string, limit = 20, page =
   return listed(await fetchEndpoint(endpoint, limit, page));
 }
 
-export async function getLatestArticles(limit = 10): Promise<Article[]> {
-  return sortByDate(listed(await fetchEndpoint('HomePage', Math.max(limit, 12)))).slice(0, limit);
+export async function getLatestArticles(limit = HOME_ARTICLE_LIMIT): Promise<Article[]> {
+  return sortByDate(
+    listed(await fetchEndpoint(HOME_ARTICLE_ENDPOINT, Math.max(limit, HOME_ARTICLE_LIMIT)))
+  ).slice(0, limit);
 }
 
 /** Paginate HomePage for sitemap / RSS (published-only via isPublic). */
 export async function getAllPublishedArticles(maxPages = 25, pageSize = 50): Promise<Article[]> {
   const bySlug = new Map<string, Article>();
   for (let page = 1; page <= maxPages; page += 1) {
-    const batch = listed(await fetchEndpoint('HomePage', pageSize, page));
+    const batch = listed(await fetchEndpoint(HOME_ARTICLE_ENDPOINT, pageSize, page));
     if (!batch.length) break;
     for (const article of batch) {
       if (article.slug) bySlug.set(article.slug, article);
@@ -323,17 +333,17 @@ export async function getByCategory(categorySlug: string, limit = 10): Promise<A
   if (section) {
     return sortByDate(listed(await fetchEndpoint(section.endpoint, limit))).slice(0, limit);
   }
-  const home = listed(await fetchEndpoint('HomePage', 40));
+  const home = listed(await fetchEndpoint(HOME_ARTICLE_ENDPOINT, 40));
   return sortByDate(home.filter((article) => article.categorySlug === categorySlug)).slice(0, limit);
 }
 
 export async function getMostRead(limit = 5): Promise<Article[]> {
-  const all = listed(await fetchEndpoint('HomePage', 40));
+  const all = listed(await fetchEndpoint(HOME_ARTICLE_ENDPOINT, 40));
   return [...all].sort((a, b) => (b.readCount ?? 0) - (a.readCount ?? 0)).slice(0, limit);
 }
 
 export async function getFeaturedArticles(limit = 3): Promise<Article[]> {
-  const all = listed(await fetchEndpoint('HomePage', limit));
+  const all = listed(await fetchEndpoint(HOME_ARTICLE_ENDPOINT, limit));
   const featured = all.filter((article) => article.featured);
   if (featured.length >= limit) return sortByDate(featured).slice(0, limit);
   return sortByDate(all).slice(0, limit);
@@ -342,7 +352,7 @@ export async function getFeaturedArticles(limit = 3): Promise<Article[]> {
 export async function search(query: string, limit = 20): Promise<Article[]> {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return [];
-  const live = await fetchEndpoint('HomePage', 80);
+  const live = await fetchEndpoint(HOME_ARTICLE_ENDPOINT, 80);
   if (!live) return [];
   return sortByDate(
     live.filter(
@@ -364,7 +374,7 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 export async function getBreakingHeadlines(): Promise<BreakingHeadline[]> {
-  const live = await fetchEndpoint('HomePage', 8);
+  const live = await fetchEndpoint(HOME_ARTICLE_ENDPOINT, 8);
   if (!live?.length) return [];
   return live.slice(0, 8).map((article, index) => ({
     id: `brk-${article.id}`,

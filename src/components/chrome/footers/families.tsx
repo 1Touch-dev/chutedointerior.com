@@ -4,7 +4,12 @@ import FooterNewsletterForm from '@/components/chrome/footers/FooterNewsletterFo
 import { siteConfig } from '@/lib/site-config';
 import { resolveChrome } from '@/lib/chrome';
 import { cn } from '@/lib/utils';
-import { articleNavCategories, getCompetitions, isSportsSite } from '@/lib/competitions';
+import {
+  articleNavCategories,
+  getCompetitions,
+  isSportsSite,
+  navHrefForSlug,
+} from '@/lib/competitions';
 
 const year = () => new Date().getFullYear();
 
@@ -80,7 +85,7 @@ export function SportsClubhouseFooter() {
               {articleNavCategories().slice(0, 5).map((cat) => (
                 <li key={cat.slug}>
                   <Link
-                    href={`/categoria/${cat.slug}`}
+                    href={navHrefForSlug(cat.slug)}
                     className="hover:text-white"
                   >
                     {cat.name}
@@ -166,7 +171,7 @@ export function DenseDirectoryFooter() {
               <ul className="mt-2 space-y-1 text-xs text-muted">
                 <li>
                   <Link
-                    href={`/categoria/${cat.slug}`}
+                    href={navHrefForSlug(cat.slug)}
                     className="hover:text-foreground"
                   >
                     Ver seção
@@ -186,7 +191,7 @@ export function DenseDirectoryFooter() {
             {siteConfig.navCategories.map((cat) => (
               <Link
                 key={cat.slug}
-                href={`/categoria/${cat.slug}`}
+                href={navHrefForSlug(cat.slug)}
                 className="rounded-full border border-black/10 px-3 py-1 text-[10px] font-semibold uppercase text-secondary hover:border-primary hover:text-primary"
               >
                 {cat.name}
@@ -242,7 +247,7 @@ export function RegionalServiceFooter() {
               {siteConfig.navCategories.slice(0, 5).map((cat) => (
                 <li key={cat.slug}>
                   <Link
-                    href={`/categoria/${cat.slug}`}
+                    href={navHrefForSlug(cat.slug)}
                     className="hover:text-primary"
                   >
                     {cat.name}
@@ -276,7 +281,7 @@ export function CompactNewsroomFooter() {
           {siteConfig.navCategories.slice(0, 5).map((cat) => (
             <Link
               key={cat.slug}
-              href={`/categoria/${cat.slug}`}
+              href={navHrefForSlug(cat.slug)}
               className="hover:text-white"
             >
               {cat.name}

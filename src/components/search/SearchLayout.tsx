@@ -2,6 +2,7 @@ import AffiliateFeed from '@/components/affiliate/AffiliateFeed';
 import Link from 'next/link';
 import ArticleCard from '@/components/cards/ArticleCard';
 import type { Article } from '@/lib/cms-client';
+import { navHrefForSlug } from '@/lib/competitions';
 import { siteConfig } from '@/lib/site-config';
 import { resolveCardVariant } from '@/lib/card-variants';
 
@@ -141,7 +142,7 @@ function ModularFilterResults({ query, results }: SearchLayoutProps) {
           <ul className="mt-3 space-y-2 text-sm">
             {siteConfig.navCategories.map((cat) => (
               <li key={cat.slug}>
-                <Link href={`/categoria/${cat.slug}`} className="hover:text-primary">
+                <Link href={navHrefForSlug(cat.slug)} className="hover:text-primary">
                   {cat.name}
                 </Link>
               </li>
